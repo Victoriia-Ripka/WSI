@@ -2,9 +2,10 @@
 import numpy as np
 from calc import calc_target
 from solver import Solver
-from typing import Any, Callable, Dict, Tuple
+from typing import Any, Callable, Dict
 import matplotlib.pyplot as plt
 
+plt.style.use('_mpl-gallery')
 
 def find_best(population: np.ndarray, O: np.ndarray):
     best_ind = np.argmax(O)
@@ -84,17 +85,21 @@ class GenAlg(Solver):
         return pop
 
 
-    def solve(self, problem: Callable[[np.ndarray], float], x0, *args, **kwargs) -> Tuple[np.ndarray, float]:
+    def solve(self, problem: Callable[[np.ndarray], float], x0, *args, **kwargs):
         t = 0
         population = self.create_population()
         O = evaluation(problem, population)
         x_best, o_best = find_best(population, O)
+        history = [o_best]
+
         while t < self.t_max and o_best < -0.01:
             selected_population = self.selection(population, O)
             crossed_population = self.crossover_population(selected_population)
             mutated_population = self.mutate(crossed_population)
             O_t = evaluation(problem, mutated_population)
             x_t, o_t = find_best(mutated_population, O_t)
+            history.append(o_best)
+
             if o_t > o_best:
                 x_best, o_best = x_t, o_t
 
@@ -106,38 +111,80 @@ class GenAlg(Solver):
             O = O_t
             t += 1
 
-        return x_best, o_best
+        return x_best, o_best, history, t
 
 
 if __name__ == '__main__':
+    starts_number = 25
+    t_max = 200
     q_x = calc_target
     genome_length = 200
-    t_max = 200
 
     # hiperparametry
-    m = 250
+    m = 250 # 50, 100, 150, 200, 250*,  300
     pc = 0.7
-    pm = 0.002
+    pm = 0.002 # 0.002*, 0.02, 0.1
 
     solver = GenAlg(m, t_max, genome_length, pc, pm)
     values = []
     solutions = []
+    fitness_history = []
+    iterations_number = []
 
     print(f"Uruchomienie optymalizacji...")
-    for i in range(30):
+    for i in range(starts_number):
         print(f"\nUruchomienie algorytmu: {i+1}")
-        x, o = solver.solve(problem=q_x, x0=None)
+        x, o, history, t = solver.solve(problem=q_x, x0=None)
         values.append(x)
         solutions.append(o)
+        fitness_history.append(history)
+        iterations_number.append(t)
 
     solutions = np.array(solutions)
     values = np.array(values)
-    best_idx = np.argmin(values)
+    iterations_number = np.array(iterations_number)
+
+    mean = np.mean(solutions)
+    std = np.std(solutions)
+    best_idx = np.argmax(solutions)
+    best_fitness = solutions[best_idx]
+    best_solution = values[best_idx]
+    worst_idx = np.argmin(solutions)
+    worst_fitness = solutions[worst_idx]
+    worst_solution = values[worst_idx]
+
+    mean_iters = np.mean(iterations_number)
+    best_iters = np.min(iterations_number)
+    worst_iters = np.max(iterations_number)
 
     print(f"\n\nHiperparametry algorytmu: {solver.get_parameters()}")
     print(f"Solutions: {solutions}")
-    print('Mean:', np.round(np.mean(solutions), 3))
-    print('Standard deviation:',  np.round(np.std(solutions), 3))
-    print("Best solution overall:", solutions[best_idx])
-    print("Best fitness overall:", values[best_idx])
+    print('Mean:', np.round(mean, 2))
+    print('Standard deviation:',  np.round(std, 2))
+    print(f'Mean iterations: {mean_iters}, Best iterations: {best_iters}, Worst iterations: {worst_iters}')
+    print("\nBest solution overall:",  np.round(best_fitness, 2))
+    print("Best fitness overall:", best_solution)
+    print("\nWorst solution overall:", np.round(worst_fitness, 2))
+    print("Worst fitness overall:", worst_solution)
 
+    # Zbieżność
+    fig = plt.figure(figsize=(10, 8))
+    fig.subplots_adjust(left=0.07, right=0.9, bottom=0.07, top=0.9)
+    for i, history in enumerate(fitness_history):
+        plt.plot(history, label=f'Uruchomienie {i + 1}')
+    plt.xlabel("Iteracja")
+    plt.ylabel("Wartość funkcji celu")
+    plt.title(f"Wykres 1. Zbieżność algorytmu genetycznego dla parametrów AG: {solver.get_parameters()}.")
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+    # Rozrzut
+    fig = plt.figure(figsize=(10, 8))
+    fig.subplots_adjust(left=0.07, right=0.9, bottom=0.07, top=0.9)
+    plt.scatter(range(len(solutions)), solutions)
+    plt.xlabel("Numer uruchomienia")
+    plt.ylabel("Najlepsze wartości funkcji celu")
+    plt.title(f"Wykres 2. Rozrzut wyników dla parametrów AG: {solver.get_parameters()}.")
+    plt.grid(True)
+    plt.show()
