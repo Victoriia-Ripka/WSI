@@ -1,4 +1,5 @@
 # Viktoriia Nowotka
+# python3 index.py
 import numpy as np
 from calc import calc_target
 from solver import Solver
