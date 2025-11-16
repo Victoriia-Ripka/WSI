@@ -1,6 +1,6 @@
 class Player:
     """A class that represents a player in a game"""
-    def __init__(self, char: str) -> None:
+    def __init__(self, char: str, ai: bool) -> None:
         """ Initializes a player.
 
         Args:
@@ -10,3 +10,4 @@ class Player:
             raise ValueError('Character that represents player should be of length 1')
 
         self.char = char
+        self.ai = ai

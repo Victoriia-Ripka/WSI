@@ -37,7 +37,18 @@ class Game:
         Args:
             move (Move): the move to make.
         """
+        print(self.__str__())
+        self.state.make_move(move)
         self.state = self.state.make_move(move)
+
+
+    def choose_best_move(self, moves: Iterable[Move]):
+        """ Choose the best move.
+
+        Args:
+            moves (Move): the move to make.
+        """
+        return self.state.ai_choose_move(moves)
 
     def is_finished(self) -> bool:
         """ Checks if the game is finished.
@@ -53,6 +64,7 @@ class Game:
         Returns:
             Optional[Player]: Player object that represents the winner or None if not finished or draw.
         """
+        print(self.__str__())
         return self.state.get_winner()
 
     def get_players(self) -> Iterable[Player]:

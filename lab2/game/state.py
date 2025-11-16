@@ -1,5 +1,4 @@
 from typing import Iterable, Optional
-
 from lab2.game.move import Move
 from lab2.game.player import Player
 
@@ -40,6 +39,12 @@ class State:
 
         Returns:
             State: New state after the move
+        """
+        raise NotImplementedError
+
+    def ai_choose_move(self, moves: Iterable[Move]) -> Move:
+        """ Returns the best move among given moves.
+        Args: moves (Iterable[Move]): Iterable of moves to choose from.
         """
         raise NotImplementedError
 
