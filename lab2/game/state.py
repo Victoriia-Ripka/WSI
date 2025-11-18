@@ -1,4 +1,4 @@
-from typing import Iterable, Optional
+from typing import Iterable, Optional, Dict
 from lab2.game.move import Move
 from lab2.game.player import Player
 
@@ -61,6 +61,13 @@ class State:
 
         Returns:
             Optional[Player]: Player object that represents the winner or None if not finished or draw.
+        """
+        raise NotImplementedError
+
+    def get_scores(self) -> Dict[Player, int]:
+        """ Returns players scores.
+        Returns:
+            Dict[Player, int]: players scores.
         """
         raise NotImplementedError
 

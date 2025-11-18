@@ -1,4 +1,4 @@
-from typing import Iterable, Optional
+from typing import Iterable, Optional, Dict
 from lab2.game.move import Move
 from lab2.game.player import Player
 from lab2.game.state import State
@@ -40,7 +40,6 @@ class Game:
         print(self.state.__str__())
         self.state = self.state.make_move(move)
 
-
     def choose_best_move(self, moves: Iterable[Move]):
         """ Choose the best move.
 
@@ -65,6 +64,12 @@ class Game:
         """
         print(self.__str__())
         return self.state.get_winner()
+
+    def get_scores(self)-> Dict[Player, int]:
+        """ Returns the score of the game.
+        Returns:
+        """
+        return self.state.get_scores()
 
     def get_players(self) -> Iterable[Player]:
         """ Retrieves players. Their order may not be consistent between different states.
