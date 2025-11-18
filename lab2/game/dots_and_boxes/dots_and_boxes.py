@@ -8,10 +8,17 @@ from lab2.game.state import State
 
 class DotsAndBoxes(Game):
     """Class that represents the dots and boxes game"""
-    FIRST_PLAYER_DEFAULT_CHAR = '1'
-    SECOND_PLAYER_DEFAULT_CHAR = '2'
 
-    def __init__(self, rows: int = 2, cols: int = 2, first_player: Player = None, second_player: Player = None, max_ai_depth: int = 3):
+    FIRST_PLAYER_DEFAULT_CHAR = "1"
+    SECOND_PLAYER_DEFAULT_CHAR = "2"
+
+    def __init__(
+        self,
+        rows: int = 2,
+        cols: int = 2,
+        first_player: Player = None,
+        second_player: Player = None,
+    ):
         """
         Initializes game.
 
@@ -20,10 +27,14 @@ class DotsAndBoxes(Game):
             first_player: the player that will go first (if None is passed, a player will be created)
             second_player: the player that will go second (if None is passed, a player will be created)
         """
-        self.first_player = first_player or Player(self.FIRST_PLAYER_DEFAULT_CHAR, True)
-        self.second_player = second_player or Player(self.SECOND_PLAYER_DEFAULT_CHAR, True)
+        self.first_player = first_player or Player(
+            self.FIRST_PLAYER_DEFAULT_CHAR, True, 3
+        )
+        self.second_player = second_player or Player(
+            self.SECOND_PLAYER_DEFAULT_CHAR, False
+        )
 
-        state = DotsAndBoxesState(self.first_player, self.second_player, rows, cols, max_ai_depth)
+        state = DotsAndBoxesState(self.first_player, self.second_player, rows, cols)
 
         super().__init__(state)
 
@@ -36,6 +47,7 @@ class DotsAndBoxesMove(Move):
         connection: str, 'h' if a horizontal line or 'v' if a vertical line
         loc: line coordinates as a tuple: (column, row) for horizontal or (row, column) for vertical
     """
+
     def __init__(self, connection: str, loc: Tuple[int, int]):
         self.connection = connection
         self.loc = loc
@@ -48,9 +60,18 @@ class DotsAndBoxesMove(Move):
 
 class DotsAndBoxesState(State):
     """Class that represents a state in the dots and boxes game"""
-    def __init__(self, current_player: Player, other_player: Player, rows: int = 2, cols: int = 2, ai_depth: int = 3, horizontals: List[List[bool]] = None, verticals: List[List[bool]] = None, boxes: List[List[Player]] = None):
+
+    def __init__(
+        self,
+        current_player: Player,
+        other_player: Player,
+        rows: int = 3,
+        cols: int = 3,
+        horizontals: List[List[bool]] = None,
+        verticals: List[List[bool]] = None,
+        boxes: List[List[Player]] = None,
+    ):
         """Creates the state. Do not call directly."""
-        self.ai_depth = ai_depth
 
         if horizontals and verticals and boxes:
             self.rows = rows
@@ -62,8 +83,8 @@ class DotsAndBoxesState(State):
         elif rows is not None and cols is not None:
             self.rows = rows
             self.cols = cols
-            self.horizontals = [[False for _ in range(cols)] for _ in range(rows+1)]
-            self.verticals = [[False for _ in range(cols+1)] for _ in range(rows)]
+            self.horizontals = [[False for _ in range(cols)] for _ in range(rows + 1)]
+            self.verticals = [[False for _ in range(cols + 1)] for _ in range(rows)]
             self.boxes = [[None for _ in range(cols)] for _ in range(rows)]
 
         else:
@@ -73,20 +94,24 @@ class DotsAndBoxesState(State):
 
     def get_moves(self) -> Iterable[DotsAndBoxesMove]:
         return [
-            DotsAndBoxesMove("h", loc)
-            for loc in self._get_free_lines(self.horizontals)
-        ] + [
-            DotsAndBoxesMove("v", loc)
-            for loc in self._get_free_lines(self.verticals)
-        ]
+            DotsAndBoxesMove("h", loc) for loc in self._get_free_lines(self.horizontals)
+        ] + [DotsAndBoxesMove("v", loc) for loc in self._get_free_lines(self.verticals)]
 
-    def make_move(self, move: DotsAndBoxesMove) -> 'DotsAndBoxesState':
+    def make_move(self, move: DotsAndBoxesMove) -> "DotsAndBoxesState":
         collection = self.horizontals if move.connection == "h" else self.verticals
         if collection[move.loc[0]][move.loc[1]]:
             raise ValueError("Invalid move")
 
-        horizontals = self._set(self.horizontals, move.loc) if move.connection == "h" else self.horizontals
-        verticals = self._set(self.verticals, move.loc) if move.connection == "v" else self.verticals
+        horizontals = (
+            self._set(self.horizontals, move.loc)
+            if move.connection == "h"
+            else self.horizontals
+        )
+        verticals = (
+            self._set(self.verticals, move.loc)
+            if move.connection == "v"
+            else self.verticals
+        )
         boxes, changed = self._check_boxes_after_move(horizontals, verticals, move)
 
         if changed:
@@ -96,7 +121,13 @@ class DotsAndBoxesState(State):
             next_player = self._other_player
             other_player = self._current_player
 
-        new_state = DotsAndBoxesState(next_player, other_player, self.ai_depth, horizontals=horizontals, verticals=verticals, boxes=boxes)
+        new_state = DotsAndBoxesState(
+            next_player,
+            other_player,
+            horizontals=horizontals,
+            verticals=verticals,
+            boxes=boxes,
+        )
         return new_state
 
     def is_finished(self) -> bool:
@@ -122,13 +153,13 @@ class DotsAndBoxesState(State):
 
         text.append(self._lines_row_to_str(len(self.boxes)))
 
-        return f'Current player: {self._current_player.char}, AI: {self._current_player.ai}\n' + '\n'.join(text)
+        return (
+            f"Current player: {self._current_player.char}, AI: {self._current_player.ai}\n"
+            + "\n".join(text)
+        )
 
     def get_scores(self) -> Dict[Player, int]:
-        scores = {
-            self._current_player: 0,
-            self._other_player: 0
-        }
+        scores = {self._current_player: 0, self._other_player: 0}
 
         for row in self.boxes:
             for box in row:
@@ -140,12 +171,21 @@ class DotsAndBoxesState(State):
     def ai_choose_move(self, moves: Iterable[DotsAndBoxesMove]) -> DotsAndBoxesMove:
         maximizing = self.get_current_player().ai
 
-        best_score = float('-inf') if maximizing else float('inf')
+        best_score = float("-inf") if maximizing else float("inf")
         best_moves = []
+
+        total_lines = (self.rows * (self.cols + 1)) + ((self.rows + 1) * self.cols)
+        free_lines_count = len(moves)
+        free_percentage = (free_lines_count / total_lines) * 100
+
+        if free_percentage >= 80.0:
+            return random.choice(moves)
 
         for i, move in enumerate(moves):
             new_state = self.make_move(move)
-            score = self._minimax(new_state, self.ai_depth, self.get_current_player())
+            score = self._minimax(
+                new_state, self.get_current_player().ai_depth, self.get_current_player()
+            )
 
             if maximizing:
                 if score > best_score:
@@ -162,22 +202,26 @@ class DotsAndBoxesState(State):
 
         return random.choice(best_moves)
 
-    def _minimax(self, state, depth: int, player: Player, alpha=float('-inf'), beta=float('inf')):
+    def _minimax(
+        self, state, depth: int, player: Player, alpha=float("-inf"), beta=float("inf")
+    ):
         """
-            state: aktualny stan gry
-            depth: głębokość rekursji AI
-            player: gracz, dla którego teraz trzeba obliczyć najlepsze znaczenie, NIE ZMIENIA się podczas rekursji
+        state: aktualny stan gry
+        depth: głębokość rekursji AI
+        player: gracz, dla którego teraz trzeba obliczyć najlepsze znaczenie, NIE ZMIENIA się podczas rekursji
+        alpha: najlepsza maksymalna liczba punktów dla max gracza na tej ściezce
+        beta: najlepsza minimalna liczba punktów dla min gracza
         """
 
         if depth == 0 or state.is_finished():
-            return self._evaluate(state, player)
+            return self._evaluate(state)
 
         moves = state.get_moves()
-        is_maximizing = (state.get_current_player().char == player.char)
+        is_maximizing = state.get_current_player().char == player.char
 
         if is_maximizing:
-            # Зараз ходить I гравець
-            value = float('-inf')
+            # liczą się punkty dla 1. gracza
+            value = float("-inf")
             for move in moves:
                 new_state = state.make_move(move)
                 score = self._minimax(new_state, depth - 1, player, alpha, beta)
@@ -188,8 +232,8 @@ class DotsAndBoxesState(State):
                     break
             return value
         else:
-            # Зараз ходить супротивник
-            value = float('inf')
+            # liczą się punkty dla oponenta
+            value = float("inf")
             for move in moves:
                 new_state = state.make_move(move)
                 score = self._minimax(new_state, depth - 1, player, alpha, beta)
@@ -200,88 +244,72 @@ class DotsAndBoxesState(State):
                     break
             return value
 
-    def _alphabeta(self, state: 'DotsAndBoxesState', depth: int, a, b, player: Player):
+    def _alphabeta(self, state: "DotsAndBoxesState", depth: int, a, b, player: Player):
         if depth == 0 or state.is_finished():
-            return self._evaluate(state, player)
+            return self._evaluate(state)
 
         moves = state.get_moves()
-        is_maximizing = (state.get_current_player().char == player.char)
+        is_maximizing = state.get_current_player().char == player.char
 
         if is_maximizing:
-            value = float('-inf')
+            value = float("-inf")
             for move in moves:
                 new_state = state.make_move(move)
-                is_same_player = (new_state.get_current_player().char == state.get_current_player().char)
+                is_same_player = (
+                    new_state.get_current_player().char
+                    == state.get_current_player().char
+                )
                 next_depth = depth if is_same_player else depth - 1
                 score = self._alphabeta(new_state, next_depth, a, b, player)
                 value = max(value, score)
                 a = max(a, value)
                 if value >= b:
-                    break # b cut off
+                    break  # b cut off
             return value
 
-        else :
-            value = float('inf')
+        else:
+            value = float("inf")
             for move in moves:
                 new_state = state.make_move(move)
-                is_same_player = (new_state.get_current_player().char == state.get_current_player().char)
+                is_same_player = (
+                    new_state.get_current_player().char
+                    == state.get_current_player().char
+                )
                 next_depth = depth if is_same_player else depth - 1
                 score = self._alphabeta(new_state, next_depth, a, b, player)
                 value = min(value, score)
                 b = min(b, value)
                 if value <= a:
-                    break # a cut off
+                    break  # a cut off
             return value
 
-    def _evaluate(self, state: 'DotsAndBoxesState', player: Player) -> int:
+    def _evaluate(self, state: "DotsAndBoxesState") -> int:
         scores = state.get_scores()
         my_score = scores[state._current_player]
         opp_score = scores[state._other_player]
         value = (my_score - opp_score) * 100
 
         # heurystyka pól
-        three_sided_penalty = 0
-        four_sided_reward = 0
-        long_chain_penalty = 0
+        three_sided_penalty = 0  # -20 punktów
+        four_sided_reward = 0  # +30 punktów
+        long_chain_penalty = 0  # - podwójna wartość długości chain
 
         visited = set()
 
-        # pomocnicza funkcja do liczenia długich ścieżek
-        def dfs_chain(r, c):
-            stack = [(r, c)]
-            length = 0
-            while stack:
-                x, y = stack.pop()
-                if (x, y) in visited:
-                    continue
-                visited.add((x, y))
-                # pole musi mieć mniej niż 3 boki aby tworzyć chain
-                if self._count_box_sides(x, y) < 3:
-                    length += 1
-                    # sprawdzamy sąsiadów (góra, dół, lewo, prawo)
-                    for dx, dy in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
-                        nx, ny = x + dx, y + dy
-                        if 0 <= nx < len(self.boxes) and 0 <= ny < len(self.boxes[0]):
-                            if (nx, ny) not in visited:
-                                stack.append((nx, ny))
-            return length
-
-        # przechodzimy poprzez pola boxes
         for r, row in enumerate(state.boxes):
             for c, box_owner in enumerate(row):
                 sides = state._count_box_sides(r, c)
 
                 if sides == 3:
-                    three_sided_penalty += 20 # kara za 3 ściany
+                    three_sided_penalty += 20
 
                 elif sides == 4 and box_owner == state._current_player:
-                    four_sided_reward += 30 # duża nagroda za zamknięcie pudełka
+                    four_sided_reward += 30
 
-                # wykrywanie długiej ścieżki
                 if sides < 3 and (r, c) not in visited:
-                    chain_len = dfs_chain(r, c)
+                    chain_len = self._dfs_chain(r, c, visited)
                     if chain_len >= 3:
-                        long_chain_penalty += chain_len * 2 # kara za stworzenie długiego łańcucha
+                        long_chain_penalty += chain_len * 2
 
         value = value + four_sided_reward - three_sided_penalty - long_chain_penalty
         return value
@@ -294,12 +322,15 @@ class DotsAndBoxesState(State):
             if not line
         ]
 
-    def _set(self, collection: List[List[bool]], loc: Tuple[int, int]) -> List[List[bool]]:
+    def _set(
+        self, collection: List[List[bool]], loc: Tuple[int, int]
+    ) -> List[List[bool]]:
         return [
-            [
-                True if loc2 == loc[1] else line
-                for loc2, line in enumerate(subcol)
-            ] if loc1 == loc[0] else subcol
+            (
+                [True if loc2 == loc[1] else line for loc2, line in enumerate(subcol)]
+                if loc1 == loc[0]
+                else subcol
+            )
             for loc1, subcol in enumerate(collection)
         ]
 
@@ -307,24 +338,37 @@ class DotsAndBoxesState(State):
         if self.boxes[row][col]:
             return self.boxes[row][col]
 
-        if horizontals[col][row] and horizontals[col][row + 1] and verticals[row][col] and verticals[row][col + 1]:
+        top = horizontals[row][col]
+        bottom = horizontals[row + 1][col]
+        left = verticals[row][col]
+        right = verticals[row][col + 1]
+
+        if top and bottom and left and right:
             return self._current_player
 
         return None
 
-    def _check_boxes_after_move( self, horizontals: List[List[bool]], verticals: List[List[bool]], move: DotsAndBoxesMove) -> Tuple[List[List[Player]], bool]:
+    def _check_boxes_after_move(
+        self,
+        horizontals: List[List[bool]],
+        verticals: List[List[bool]],
+        move: DotsAndBoxesMove,
+    ) -> Tuple[List[List[Player]], bool]:
         box1_col = None
-        box1_row = None        
+        box1_row = None
 
         box2_col = None
         box2_row = None
 
+        true_rows = len(self.boxes)
+        true_cols = len(self.boxes[0]) if true_rows > 0 else 0
+
         if move.connection == "h":
-            col, row = move.loc
+            row, col = move.loc
             if row > 0:
                 box1_col = col
                 box1_row = row - 1
-            if row < len(self.boxes):
+            if row < true_rows:
                 box2_col = col
                 box2_row = row
         else:
@@ -332,16 +376,23 @@ class DotsAndBoxesState(State):
             if col > 0:
                 box1_col = col - 1
                 box1_row = row
-            if col < len(self.boxes[0]):
+            if col < true_cols:
                 box2_col = col
                 box2_row = row
 
         new_boxes = [
-            [
-                self._check_box(horizontals, verticals, col, row)
-                if col in (box1_col, box2_col) else box
-                for col, box in enumerate(row_boxes)
-            ] if row in (box1_row, box2_row) else row_boxes
+            (
+                [
+                    (
+                        self._check_box(horizontals, verticals, col, row)
+                        if col in (box1_col, box2_col)
+                        else box
+                    )
+                    for col, box in enumerate(row_boxes)
+                ]
+                if row in (box1_row, box2_row)
+                else row_boxes
+            )
             for row, row_boxes in enumerate(self.boxes)
         ]
 
@@ -360,19 +411,19 @@ class DotsAndBoxesState(State):
         """Return number of drawn sides around box at (row, col)."""
         count = 0
 
-        # Top horizontal: horizontals[col][row]
-        if self.horizontals[col][row]:
+        # top horizontal
+        if self.horizontals[row][col]:
             count += 1
 
-        # Bottom horizontal: horizontals[col][row + 1]
-        if self.horizontals[col][row + 1]:
+        # bottom horizontal
+        if self.horizontals[row + 1][col]:
             count += 1
 
-        # Left vertical: verticals[row][col]
+        # left vertical
         if self.verticals[row][col]:
             count += 1
 
-        # Right vertical: verticals[row][col + 1]
+        # right vertical
         if self.verticals[row][col + 1]:
             count += 1
 
@@ -380,15 +431,33 @@ class DotsAndBoxesState(State):
 
     def _lines_row_to_str(self, row):
         line_row = self.horizontals[row]
-        line_chars = ('-' if line else ' ' for line in line_row)
-        return 'o' + 'o'.join(line_chars) + 'o'
+        line_chars = ("-" if line else " " for line in line_row)
+        return "o" + "o".join(line_chars) + "o"
 
     def _row_to_str(self, row):
         chars = []
         for line, box in zip(self.verticals[row], self.boxes[row]):
-            chars.append('|' if line else ' ')
-            chars.append(box.char if box else ' ')
+            chars.append("|" if line else " ")
+            chars.append(box.char if box else " ")
 
-        chars.append('|' if self.verticals[row][-1] else ' ')
+        chars.append("|" if self.verticals[row][-1] else " ")
 
-        return ''.join(chars)
+        return "".join(chars)
+
+    def _dfs_chain(self, r, c, visited):
+        stack = [(r, c)]
+        length = 0
+        while stack:
+            x, y = stack.pop()
+            if (x, y) in visited:
+                continue
+            visited.add((x, y))
+
+            if self._count_box_sides(x, y) < 3:
+                length += 1
+                for dx, dy in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
+                    nx, ny = x + dx, y + dy
+                    if 0 <= nx < len(self.boxes) and 0 <= ny < len(self.boxes[0]):
+                        if (nx, ny) not in visited:
+                            stack.append((nx, ny))
+        return length
