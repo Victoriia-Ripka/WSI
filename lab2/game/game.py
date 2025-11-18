@@ -37,8 +37,7 @@ class Game:
         Args:
             move (Move): the move to make.
         """
-        print(self.__str__())
-        self.state.make_move(move)
+        print(self.state.__str__())
         self.state = self.state.make_move(move)
 
 

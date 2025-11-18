@@ -96,7 +96,8 @@ class DotsAndBoxesState(State):
             next_player = self._other_player
             other_player = self._current_player
 
-        return DotsAndBoxesState( next_player, other_player, self.ai_depth, horizontals=horizontals, verticals=verticals, boxes=boxes)
+        new_state = DotsAndBoxesState(next_player, other_player, self.ai_depth, horizontals=horizontals, verticals=verticals, boxes=boxes)
+        return new_state
 
     def is_finished(self) -> bool:
         return all(all(box_row) for box_row in self.boxes)
@@ -159,37 +160,84 @@ class DotsAndBoxesState(State):
                 elif score == best_score:
                     best_moves.append(move)
 
-            print(i, ": ", best_moves)
-
         return random.choice(best_moves)
 
-    def _minimax(self, state, depth: int, player: Player):
+    def _minimax(self, state, depth: int, player: Player, alpha=float('-inf'), beta=float('inf')):
+        """
+            state: aktualny stan gry
+            depth: głębokość rekursji AI
+            player: gracz, dla którego teraz trzeba obliczyć najlepsze znaczenie, NIE ZMIENIA się podczas rekursji
+        """
+
         if depth == 0 or state.is_finished():
-            return self._evaluate()
+            return self._evaluate(state, player)
 
         moves = state.get_moves()
+        is_maximizing = (state.get_current_player().char == player.char)
 
-        if player.char == '1':
+        if is_maximizing:
+            # Зараз ходить I гравець
             value = float('-inf')
             for move in moves:
                 new_state = state.make_move(move)
-                value = max(value, self._minimax(new_state, depth - 1, player))
+                score = self._minimax(new_state, depth - 1, player, alpha, beta)
+                value = max(value, score)
+
+                alpha = max(alpha, value)
+                if value >= beta:
+                    break
             return value
         else:
+            # Зараз ходить супротивник
             value = float('inf')
             for move in moves:
                 new_state = state.make_move(move)
-                value = min(value, self._minimax(new_state, depth - 1, player))
+                score = self._minimax(new_state, depth - 1, player, alpha, beta)
+                value = min(value, score)
+
+                beta = min(beta, value)
+                if value <= alpha:
+                    break
             return value
 
-    # heuristic value of node
-    def _evaluate(self):
-        # podstawowy wynik
-        # scores = self.get_scores()
-        # my_score = scores[self._current_player]
-        # opp_score = scores[self._other_player]
-        # zaczynamy od różnicy punktów
-        # value = (my_score - opp_score) * 100
+    def _alphabeta(self, state: 'DotsAndBoxesState', depth: int, a, b, player: Player):
+        if depth == 0 or state.is_finished():
+            return self._evaluate(state, player)
+
+        moves = state.get_moves()
+        is_maximizing = (state.get_current_player().char == player.char)
+
+        if is_maximizing:
+            value = float('-inf')
+            for move in moves:
+                new_state = state.make_move(move)
+                is_same_player = (new_state.get_current_player().char == state.get_current_player().char)
+                next_depth = depth if is_same_player else depth - 1
+                score = self._alphabeta(new_state, next_depth, a, b, player)
+                value = max(value, score)
+                a = max(a, value)
+                if value >= b:
+                    break # b cut off
+            return value
+
+        else :
+            value = float('inf')
+            for move in moves:
+                new_state = state.make_move(move)
+                is_same_player = (new_state.get_current_player().char == state.get_current_player().char)
+                next_depth = depth if is_same_player else depth - 1
+                score = self._alphabeta(new_state, next_depth, a, b, player)
+                value = min(value, score)
+                b = min(b, value)
+                if value <= a:
+                    break # a cut off
+            return value
+
+    def _evaluate(self, state: 'DotsAndBoxesState', player: Player) -> int:
+        scores = state.get_scores()
+        my_score = scores[state._current_player]
+        opp_score = scores[state._other_player]
+        value = (my_score - opp_score) * 100
 
         # heurystyka pól
         three_sided_penalty = 0
@@ -218,27 +266,24 @@ class DotsAndBoxesState(State):
                                 stack.append((nx, ny))
             return length
 
-        # przechodzimy przez pola
-        for r, row in enumerate(self.boxes):
-            for c, owner in enumerate(row):
-                sides = self._count_box_sides(r, c)
+        # przechodzimy poprzez pola boxes
+        for r, row in enumerate(state.boxes):
+            for c, box_owner in enumerate(row):
+                sides = state._count_box_sides(r, c)
 
                 if sides == 3:
-                    # kara za 3 ściany (dawanie punktu przeciwnikowi)
-                    three_sided_penalty += 20
+                    three_sided_penalty += 20 # kara za 3 ściany
 
-                elif sides == 4 and owner == self._current_player:
-                    # duża nagroda za zamknięcie pudełka
-                    four_sided_reward += 30
+                elif sides == 4 and box_owner == state._current_player:
+                    four_sided_reward += 30 # duża nagroda za zamknięcie pudełka
 
                 # wykrywanie długiej ścieżki
                 if sides < 3 and (r, c) not in visited:
                     chain_len = dfs_chain(r, c)
                     if chain_len >= 3:
-                        # kara za stworzenie długiego łańcucha
-                        long_chain_penalty += chain_len * 5
+                        long_chain_penalty += chain_len * 2 # kara za stworzenie długiego łańcucha
 
-        value = four_sided_reward - three_sided_penalty - long_chain_penalty
+        value = value + four_sided_reward - three_sided_penalty - long_chain_penalty
         return value
 
     def _get_free_lines(self, collection: List[List[bool]]) -> List[Tuple[int, int]]:
