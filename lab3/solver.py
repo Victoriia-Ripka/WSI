@@ -1,3 +1,4 @@
+# Viktoriia Nowotka
 from abc import ABC, abstractmethod
 
 
@@ -10,7 +11,7 @@ class Solver(ABC):
         ...
 
     @abstractmethod
-    def solve(self, problem, x0, *args, **kwargs):
+    def solve(self, X, *args, **kwargs):
         """
         A method that solves the given problem for given initial solution.
         It may accept or require additional parameters.
