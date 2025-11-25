@@ -1,29 +1,67 @@
 # Viktoriia Nowotka
 import csv
 import numpy as np
+import pandas as pd
 from lab3.decision_tree import DecisionTree
+from sklearn.model_selection import train_test_split
 
 # 69 301 par uczących
 
 def main():
     np.set_printoptions(suppress=True)
 
-    tree_depth = 4
-    feature_names = ['age', 'height', 'weight', 'gender', 'ap_hi', 'ap_lo', 'cholesterol', 'gluc', 'smoke', 'alco', 'active']
-    dt = DecisionTree(tree_depth, feature_names)
+    df = pd.read_csv('data/cardio_train.csv', sep=';')
+    df.drop('id', axis=1, inplace=True)
 
-    data = np.genfromtxt('data/cardio_train.csv', delimiter=';', skip_header=1)
-    x = data[:, :-1]
-    y = data[:, -1]
+    df['age_years'] = df['age'] / 365
+    bins_age = [0, 12, 25, 45, 60, df['age_years'].max()]
+    labels_age = ['baby', 'teenager', 'young', 'middle_aged+', 'senior']
+    df['age_group'] = pd.cut( df['age_years'], bins=bins_age, labels=labels_age, right=True, include_lowest=True)
+    df.drop(['age', 'age_years'], axis=1, inplace=True)
+
+    labels_ap = [0, 1, 2]
+    bins_ap_hi = [0, 120, 140, df['ap_hi'].max()]
+    df['ap_hi_cat'] = pd.cut( df['ap_hi'], bins=bins_ap_hi, labels=labels_ap, right=True, include_lowest=True )
+    bins_ap_lo = [0, 70, 90, df['ap_lo'].max()]
+    df['ap_lo_cat'] = pd.cut(df['ap_lo'], bins=bins_ap_lo, labels=labels_ap, right=True, include_lowest=True)
+    df.drop(['ap_hi', 'ap_lo'], axis=1, inplace=True)
+
+    labels_height = ['short', 'normal', 'tall']
+    bins_height = [0, 150, 180, df['height'].max()]
+    df['height_group'] = pd.cut(df['height'], bins=bins_height, labels=labels_height, right=True, include_lowest=True)
+
+    labels_weight = ['thin', 'normal', 'fat']
+    bins_weight = [0, 50, 80, df['weight'].max()]
+    df['weight_group'] = pd.cut(df['weight'], bins=bins_weight, labels=labels_weight, right=True, include_lowest=True)
+    df.drop(['weight', 'height'], axis=1, inplace=True)
+
+    df_encoded = pd.get_dummies(df, drop_first=True).astype(int)
+    print(df_encoded.iloc[0])
+
+    y = df_encoded['cardio'].values  # etykieta
+    feature_names = df_encoded.drop('cardio', axis=1).columns.tolist()
+    x = df_encoded.drop('cardio', axis=1).values  # cechy
     c = np.unique(y)
-    r = np.arange(x.shape[1])
-    s = np.arange(x.shape[0])
+    r = np.arange(x.shape[1]) # Індекси стовпців (ознак)
+    s = np.arange(x.shape[0]) # Індекси рядків (зразків)
 
-    dt.get_parameters()
+    # TODO Należy znaleźć taką wartość parametru maksymalnej głębokosci, która da najlepszy wynik.
+    tree_depth = 4
 
-    tree = dt.id3(x, y, c, r, s)
-    print(tree)
+    X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42, stratify=y)
 
+    # dt = DecisionTree(tree_depth, feature_names, X_train, X_test, y_train, y_test, c, r, s)
+    # dt.get_parameters()
+    # dt.fit()
+    # test = dt.test()
+    # print(test)
+
+
+
+#     Potrzebny jest trzeci zbiór do oceny jakości wybranego modelu
+# Brakujące wartości?
+# Co zrobić, jeżeli w danych pojawi się wartość, której nie było w zbiorze
+# trenującym?
 
 
 if __name__ == "__main__":
