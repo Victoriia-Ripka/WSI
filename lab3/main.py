@@ -49,7 +49,7 @@ def main():
     # 69 301 par uczących
     df = format_data(df)
     # print(df.iloc[0])
-    small_df = df.iloc[0:20]
+    small_df = df.iloc[0:300]
 
     y = small_df['cardio'].values
     feature_names = small_df.drop('cardio', axis=1).columns.tolist()
@@ -64,7 +64,6 @@ def main():
     dt = DecisionTree(tree_depth, feature_names, X_train, X_test, y_train, y_test)
     # dt.get_parameters()
     dt.fit()
-    print(y_train)
     print(dt.tree)
     # dt.print_tree()
     # accuracy = dt.test()
@@ -73,10 +72,9 @@ def main():
 
 
 
-#     Potrzebny jest trzeci zbiór do oceny jakości wybranego modelu
+# TODO Potrzebny jest trzeci zbiór do oceny jakości wybranego modelu
 # Brakujące wartości?
-# Co zrobić, jeżeli w danych pojawi się wartość, której nie było w zbiorze
-# trenującym?
+# Co zrobić, jeżeli w danych pojawi się wartość, której nie było w zbiorze trenującym?
 
 
 if __name__ == "__main__":
