@@ -13,8 +13,8 @@ class Solver(ABC):
     @abstractmethod
     def solve(self, X, *args, **kwargs):
         """
-        A method that solves the given problem for given initial solution.
+        A method that predict class to the given problem.
         It may accept or require additional parameters.
-        Returns the solution and may return additional info.
+        Returns the label and may return additional info.
         """
         ...

@@ -1,11 +1,9 @@
 # Viktoriia Nowotka
-import csv
 import numpy as np
 import pandas as pd
 from lab3.decision_tree import DecisionTree
 from sklearn.model_selection import train_test_split
 
-# 69 301 par uczących
 
 def format_data(df):
     df['age_years'] = df['age'] / 365
@@ -41,12 +39,14 @@ def format_data(df):
 
     return df
 
+
 def main():
     np.set_printoptions(suppress=True)
 
     df = pd.read_csv('data/cardio_train.csv', sep=';')
     df.drop('id', axis=1, inplace=True)
 
+    # 69 301 par uczących
     df = format_data(df)
     # print(df.iloc[0])
     small_df = df.iloc[0:20]
