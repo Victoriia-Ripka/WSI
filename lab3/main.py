@@ -102,7 +102,7 @@ def main():
     num_correct = np.sum(correct_predictions)
     predict_accuracy = num_correct / len(Y_test)
 
-    print(f"Predict accuracy for ID3 with depth {best_depth}: {predict_accuracy:.4f}")
+    print(f"Przewiduj dokładność dla ID3 z głębokością {best_depth}: {predict_accuracy:.4f}")
 
 
 if __name__ == "__main__":
