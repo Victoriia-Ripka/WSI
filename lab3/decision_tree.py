@@ -17,10 +17,8 @@ class DecisionTree(Solver):
         self.y_train = y_train
         self.y_test = y_test
 
-        self.tree = None # przechowuje korzeń zwrócony przez id3
+        self.tree = None
         self.global_modal_class = None
-
-        print(self.feature_names)
 
     def id3(self, c, s, r):
         """ Rekurencyjna metoda algorytmu ID3 indukujący drzewo decyzyjne.
@@ -30,7 +28,6 @@ class DecisionTree(Solver):
             c: zbiór klas [0 1]
             r: # zbiór atrybutów poza klasą [0-10]
             s: # zbiór objektów [{dane}]
-            default_class: klasa do zwrócenia w przypadku pustego s
 
         Returns:
             Drzewo decyzyjne z korzeniem oznaczonym przed D i krawędziami d_j
@@ -60,15 +57,10 @@ class DecisionTree(Solver):
 
         feature_values_subset = self.X_train[s, best_feature_idx]
 
-        # iteracja po unikalnych wartościach atrybutu (krawędzie węzła)
+        # iteracja po unikalnych wartościach atrybutu w węzlie
         for value in np.unique(feature_values_subset):
-
-            # Znajdź maskę boolowską obiektów w S, które mają wartość 'value' dla tego atrybutu
             mask = (self.X_train[s, best_feature_idx] == value)
-
-            # Stwórz nowy podzbiór indeksów S_child (s_child_indices)
             s_child_indices = s[mask]
-
             child_node = self.id3(c, s_child_indices, r_new)
 
             # krawędź = wartość atrybutu, wartość = węzeł potomny
@@ -77,36 +69,31 @@ class DecisionTree(Solver):
         return current_node
 
     def _calculate_entropy(self, s_indices):
-        """ I(S) = - suma [ P(c|S) * log2(P(c|S)) ]  """
-        # Nieczystość Giniego skupia się na minimalizacji błędów klasyfikacji, podczas gdy entropia mierzy stopień nieporządku w danych.
-        # Entropia mierzy jak bardzo dane są pomieszane lub nieuporządkowane.
+        """ I(S) = - suma [ P(c|S) * log2(P(c|S)) ]
+        Fc(S) - rozumiemy jako niewiadoma funkcja. Można przedstawić jako prawdopodobieństwo występowania etykiety c w S -> P(c|S)
+        [0,1] -> 1 występuję tylko 1 klasa w podzbiorze
+        """
+
         if len(s_indices) == 0:
             return 0.0
 
-        # 1. Wyizolowanie etykiet klas dla podzbioru S
-        y_subset = self.y_train[s_indices]
-
-        # 2. Obliczenie liczności (counts) dla każdej klasy
-        # classes i counts są równoległymi tablicami
+        y_subset = self.y_train[s_indices] # etykiety danego podzbioru
         classes, counts = np.unique(y_subset, return_counts=True)
 
-        # 3. Obliczenie prawdopodobieństwa P(c|S) (częstotliwość występowania fc(S))
-        # Dzielimy liczność każdej klasy przez całkowitą liczbę obiektów w podzbiorze S
         total_samples = len(s_indices)
         probabilities = counts / total_samples
 
-        # 4. Obliczenie Entropii
         entropy = 0.0
         for p in probabilities:
-            # Pamiętaj, że log2(0) jest nieokreślone, ale lim p*log2(p) przy p->0 jest 0.
-            # Dlatego pomijamy przypadki, gdy p jest bardzo bliskie 0.
             if p > 0:
-                # Używamy logarytmu o podstawie 2, typowego dla entropii Shannona.
                 entropy -= p * np.log2(p)
 
         return entropy
 
     def _calculate_inf_ds(self, s_indices, feature_index):
+        """ Inf(D, S) = suma ( |S_j| / |S| ) * Entropy(S_j)
+        Entropia mierzy jak bardzo dane są pomieszane lub nieuporządkowane.
+        """
         total_samples = len(s_indices)
         weighted_entropy_sum = 0.0
 
@@ -125,9 +112,10 @@ class DecisionTree(Solver):
         return weighted_entropy_sum
 
     def _calculate_inf_gain(self, s_indices, feature_index):
-        # A jak porównujemy i szukamy najlepszego podziału naszej zmiennej (lub zmiennych, jeśli mamy ich więcej)? Robimy to poprzez obliczenie nieczystości Giniego dla każdej z tych części i sumujemy je, uwzględniając proporcję elementów w każdej z nich. Następnie wybieramy podział, który minimalizuje tę sumę, co oznacza, że najlepiej segreguje dane według klasy.
-        # Uwaga. Warto pamiętać, że jeśli nieczystość Giniego dla dwóch węzłów podrzędnych nie jest niższa niż nieczystość Giniego dla węzła nadrzędnego, to algorytm przestanie szukać podziałów.
-        # 0.0-0.5
+        """ Dla wyboru atrybutu obliczamy nieczystości Giniego dla każdej z tych części i sumujemy je, uwzględniając proporcję elementów w każdej z nich. Następnie wybieramy podział, który minimalizuje tę sumę, co oznacza, że najlepiej segreguje dane według klasy.
+        Uwaga. Warto pamiętać, że jeśli nieczystość Giniego dla dwóch węzłów podrzędnych nie jest niższa niż nieczystość Giniego dla węzła nadrzędnego, to algorytm przestanie szukać podziałów.
+        [0,0; 0,5]
+        """
         entropy_parent = self._calculate_entropy(s_indices)
         inf_ds = self._calculate_inf_ds(s_indices, feature_index)
         information_gain = entropy_parent - inf_ds
