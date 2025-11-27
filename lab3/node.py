@@ -5,9 +5,9 @@ class Node:
         self.children = children if children is not None else {}
         self.modal_class = modal_class
         # {
-        #     1.0: Node_Potomek_1,
-        #     2.0: Node_Potomek_2,
-        #     3.0: Node_Potomek_3
+        #     1.0: Potomek_1,
+        #     2.0: Potomek_2,
+        #     3.0: Potomek_3
         # }
 
     def is_leaf(self):

@@ -41,24 +41,23 @@ def format_data(df):
     return df
 
 
-def do_charts(depths, test_accuracies, predict_accuracies, N):
+def do_charts(depths, validation_accuracies):
     plt.figure(figsize=(12, 7))
-    plt.plot(depths, test_accuracies, label='Dokładność Testowa', marker='o', linestyle='-')
-    plt.plot(depths, predict_accuracies, label=f'Dokładność Predykcyjna ({N} próbki)', marker='x', linestyle=':')
+    plt.plot(depths, validation_accuracies, label='Dokładność Validacyjna', marker='o', linestyle='-')
 
     plt.title('Zależność Dokładności od Maksymalnej Głębokości Drzewa (ID3)')
     plt.xlabel('Maksymalna Głębokość Drzewa')
-    plt.ylabel('Dokładność (Accuracy)')
+    plt.ylabel('Dokładność')
 
-    optimal_depth = depths[np.argmax(test_accuracies)]
-    max_test_acc = max(test_accuracies)
+    optimal_depth = depths[np.argmax(validation_accuracies)]
+    max_test_acc = max(validation_accuracies)
 
     plt.axvline(x=optimal_depth, color='r', linestyle='-.', linewidth=1)
 
     plt.legend()
     plt.grid(True, linestyle='--')
     plt.xticks(depths)
-    plt.savefig(f"Zależność Dokładności od Maksymalnej Głębokości Drzewa {N}.png")
+    plt.savefig(f"Zależność Dokładności od Maksymalnej Głębokości Drzewa.png")
     plt.show()
 
     print(f"\n\nOptymalna głębokość na zbiorze testowym: {optimal_depth} (Dokładność: {max_test_acc:.4f})")
@@ -74,36 +73,36 @@ def main():
     feature_names = df.drop('cardio', axis=1).columns.tolist()
     x = df.drop('cardio', axis=1).values
 
-    N_PREDICT = 301
-    X_main, X_predict, Y_main, Y_predict = train_test_split( x, y, test_size=N_PREDICT, random_state=42, stratify=y )
-    X_train, X_test, y_train, y_test = train_test_split(X_main, Y_main, test_size=0.2, random_state=42, stratify=Y_main )
+    X_train, X_tmp, Y_train, Y_tmp = train_test_split(x, y, test_size=0.3, random_state=42, stratify=y)
+    X_val, X_test, Y_val, Y_test = train_test_split(X_tmp, Y_tmp, test_size=0.5, random_state=42, stratify=Y_tmp)
 
-    tree_depths = [3, 4, 5, 6, 7, 8, 9, 10, 11]
-    test_accuracies = []
-    predict_accuracies = []
+    tree_depths = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+    validation_accuracies = []
 
     for tree_depth in tree_depths:
-
-        dt = DecisionTree(tree_depth, feature_names, X_train, X_test, y_train, y_test)
+        dt = DecisionTree(tree_depth, feature_names, X_train, X_val, Y_train, Y_val)
         dt.get_parameters()
         dt.fit()
         # dt.print_tree()
+        validation_accuracy = dt.test()
+        validation_accuracies.append(validation_accuracy)
+        print(f"Głębokość {tree_depth}: Test={validation_accuracy:.4f}")
 
-        test_accuracy = dt.test()
-        test_accuracies.append(test_accuracy)
+    do_charts(tree_depths, validation_accuracies)
 
-        predicts = []
-        for x in X_predict:
-            predicts.append(dt.predict(x))
+    best_depth = tree_depths[np.argmax(validation_accuracies)]
+    dt = DecisionTree(best_depth, feature_names, X_train, X_test, Y_train, Y_test)
+    dt.get_parameters()
+    dt.fit()
+    predicts = []
+    for x in X_test:
+        predicts.append(dt.predict(x))
 
-        correct_predictions = (Y_predict == predicts)
-        num_correct = np.sum(correct_predictions)
-        predict_accuracy = num_correct / len(Y_predict)
-        predict_accuracies.append(predict_accuracy)
-        print(f"Głębokość {tree_depth}: Test={test_accuracy:.4f}, Predykcja={predict_accuracy:.4f}")
-        print(f"Liczba poprawnych predykcji: {num_correct} z {len(Y_predict)}")
+    correct_predictions = (Y_test == predicts)
+    num_correct = np.sum(correct_predictions)
+    predict_accuracy = num_correct / len(Y_test)
 
-    do_charts(tree_depths, test_accuracies, predict_accuracies, N_PREDICT)
+    print(f"Predict accuracy for ID3 with depth {best_depth}: {predict_accuracy:.4f}")
 
 
 if __name__ == "__main__":

@@ -62,7 +62,7 @@ class DecisionTree(Solver):
 
         feature_values_subset = self.X_train[s, best_feature_idx]
 
-        # iteracja po unikalnych wartościach atrybutu w węzlie
+        # tworzenie gałęzi w węzlie
         for value in np.unique(feature_values_subset):
             mask = (self.X_train[s, best_feature_idx] == value)
             s_child_indices = s[mask]
@@ -131,6 +131,7 @@ class DecisionTree(Solver):
         best_feature_index = -1
 
         for feature_idx in r_indices:
+            # zdobycz informacyjna
             gain = self._calculate_inf_gain(s_indices, feature_idx)
 
             if gain > best_gain:
@@ -180,7 +181,7 @@ class DecisionTree(Solver):
         self.global_modal_class = self._get_most_common_class(s_initial)
         self.tree = self.id3(c, s_initial, r_initial, self.max_depth)
 
-    def test(self):
+    def test(self, x=None, y=None):
         correct_predict = 0
         wrong_predict = 0
 
