@@ -20,7 +20,7 @@ class DecisionTree(Solver):
         self.tree = None
         self.global_modal_class = None
 
-    def id3(self, c, s, r):
+    def id3(self, c, s, r, depth):
         """ Rekurencyjna metoda algorytmu ID3 indukujący drzewo decyzyjne.
         Algorytm stara się znaleźć podział danych, który minimalizuje entropię, co oznacza, że grupy danych są bardziej jednorodne w kontekście przynależności do danej klasy
 
@@ -32,6 +32,7 @@ class DecisionTree(Solver):
         Returns:
             Drzewo decyzyjne z korzeniem oznaczonym przed D i krawędziami d_j
         """
+
         if len(s) > 0:
             current_modal_class = self._get_most_common_class(s)
         else:
@@ -48,6 +49,10 @@ class DecisionTree(Solver):
             label = self.y_train[s][0]
             return Node(label)
 
+        if depth == 0:
+            # Zwróć liść z najczęściej występującą klasą w bieżącym zbiorze S.
+            return Node(current_modal_class)
+
         # wybór najlepszego atrybutu i tworzenie węzła wewnętrznego
         best_feature_idx = self._find_best_split(r, s)
         best_feature_name = self.feature_names[best_feature_idx]
@@ -61,7 +66,7 @@ class DecisionTree(Solver):
         for value in np.unique(feature_values_subset):
             mask = (self.X_train[s, best_feature_idx] == value)
             s_child_indices = s[mask]
-            child_node = self.id3(c, s_child_indices, r_new)
+            child_node = self.id3(c, s_child_indices, r_new, depth - 1)
 
             # krawędź = wartość atrybutu, wartość = węzeł potomny
             current_node.children[value] = child_node
@@ -173,7 +178,7 @@ class DecisionTree(Solver):
         r_initial = np.arange(self.X_train.shape[1])
         s_initial = np.arange(self.X_train.shape[0])
         self.global_modal_class = self._get_most_common_class(s_initial)
-        self.tree = self.id3(c, s_initial, r_initial)
+        self.tree = self.id3(c, s_initial, r_initial, self.max_depth)
 
     def test(self):
         correct_predict = 0
