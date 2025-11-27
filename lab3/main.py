@@ -48,33 +48,24 @@ def main():
 
     # 69 301 par uczących
     df = format_data(df)
-    # print(df.iloc[0])
-    small_df = df.iloc[0:300]
-
-    y = small_df['cardio'].values
-    feature_names = small_df.drop('cardio', axis=1).columns.tolist()
-    x = small_df.drop('cardio', axis=1).values
+    y = df['cardio'].values
+    feature_names = df.drop('cardio', axis=1).columns.tolist()
+    x = df.drop('cardio', axis=1).values
 
     # TODO Należy znaleźć taką wartość parametru maksymalnej głębokosci, która da najlepszy wynik.
     tree_depth = 4
 
-    X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42)
-    # , stratify=y
-
+    X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42, stratify=y)
     dt = DecisionTree(tree_depth, feature_names, X_train, X_test, y_train, y_test)
     # dt.get_parameters()
     dt.fit()
-    print(dt.tree)
     # dt.print_tree()
-    # accuracy = dt.test()
-    # print(f"test accuracy: {accuracy}")
-    # dt.solve()
-
-
-
-# TODO Potrzebny jest trzeci zbiór do oceny jakości wybranego modelu
-# Brakujące wartości?
-# Co zrobić, jeżeli w danych pojawi się wartość, której nie było w zbiorze trenującym?
+    # TODO Potrzebny jest trzeci zbiór do oceny jakości wybranego modelu
+    # Brakujące wartości?
+    # Co zrobić, jeżeli w danych pojawi się wartość, której nie było w zbiorze trenującym?
+    accuracy = dt.test()
+    print(f"test accuracy: {accuracy}")
+    # dt.predict()
 
 
 if __name__ == "__main__":

@@ -1,9 +1,8 @@
-# Viktoriia Nowotka
 from abc import ABC, abstractmethod
 
 
 class Solver(ABC):
-    """A solver. It may be initialized with some hyperparameters."""
+    """A solver. Parameters may be passed during initialization."""
 
     @abstractmethod
     def get_parameters(self):
@@ -11,10 +10,16 @@ class Solver(ABC):
         ...
 
     @abstractmethod
-    def solve(self, X, *args, **kwargs):
+    def fit(self):
         """
-        A method that predict class to the given problem.
-        It may accept or require additional parameters.
-        Returns the label and may return additional info.
+        A method that fits the solver to the given data.
+        X is the dataset without the class attribute.
+        y contains the class attribute for each sample from X.
+        It may return anything.
         """
         ...
+
+    def predict(self, X):
+        """
+        A method that returns predicted class for each row of X
+        """
