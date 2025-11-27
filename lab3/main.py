@@ -65,8 +65,6 @@ def do_charts(depths, test_accuracies, predict_accuracies, N):
 
 
 def main():
-    np.set_printoptions(suppress=True)
-
     df = pd.read_csv('data/cardio_train.csv', sep=';')
     df.drop('id', axis=1, inplace=True)
 
@@ -76,7 +74,7 @@ def main():
     feature_names = df.drop('cardio', axis=1).columns.tolist()
     x = df.drop('cardio', axis=1).values
 
-    N_PREDICT = 150
+    N_PREDICT = 301
     X_main, X_predict, Y_main, Y_predict = train_test_split( x, y, test_size=N_PREDICT, random_state=42, stratify=y )
     X_train, X_test, y_train, y_test = train_test_split(X_main, Y_main, test_size=0.2, random_state=42, stratify=Y_main )
 
