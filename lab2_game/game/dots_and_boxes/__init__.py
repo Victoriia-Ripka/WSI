@@ -1,0 +1,3 @@
+from lab2_game.game.dots_and_boxes.dots_and_boxes import DotsAndBoxes
+from lab2_game.game.dots_and_boxes.dots_and_boxes import DotsAndBoxesMove
+from lab2_game.game.dots_and_boxes.dots_and_boxes import DotsAndBoxesState
