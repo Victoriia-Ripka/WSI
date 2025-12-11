@@ -51,7 +51,6 @@ class GradientDescent(Solver):
 
         return array([df_dx, df_dy])
 
-
     def solve(self, problem, x_start, *args):
         if problem.__name__ == "ackley_function_2d":
             gradient_func = self.gradient_ackley_2d
@@ -101,6 +100,4 @@ class GradientDescent(Solver):
             x0 -= self.step * d
 
         return x0, history_f, array(history_x), array(history_y)
-
-
 
