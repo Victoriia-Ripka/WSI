@@ -14,18 +14,15 @@ def visualization_ackley_function(r_min, r_max):
 
     plt.figure(figsize=(12, 7))
     plt.plot(inputs, outputs, color='blue', linewidth=2)
-    plt.title("Wykres 1. Funkcji Ackleya")
-    plt.xlabel("x")
-    plt.ylabel("f(x)")
+    plt.title("Wykres 1. Funkcja Ackleya")
     plt.grid(True, linestyle='--', alpha=0.7)
-    # plt.legend()
     plt.show()
 
 
 def visualization_convergence_ackley_function(history):
     plt.figure(figsize=(12, 7))
     for step, hist in history.items():
-        plt.plot(hist, label=f'Krok (Step) = {step}')
+        plt.plot(hist, label=f'Krok = {step}')
 
     plt.title('Wykres 2. Zbieżność Gradient Descent dla funkcji Ackleya')
     plt.xlabel('Iteracja')
@@ -46,10 +43,10 @@ def visualize_best_step_2d(final_pos, history_f, path_x, optimal_step, r_vis=5):
     ax.scatter(path_x[0], history_f[0], color='green', s=100, zorder=5, label='Punkt początkowy')
     ax.scatter(final_pos[0], history_f[-1], color='cyan', s=100, zorder=5, label='Punkt końcowy')
 
-    plt.title("Wykres 3. Trajektoria minimalizacji", fontsize=16)
+    plt.title("Wykres 3. Trajektoria minimalizacji")
     ax.set_title(f'Trajektoria dla optymalnego kroku {optimal_step}')
     ax.set_xlabel('X')
-    ax.set_ylabel('Wartość funkcji f(x)')
+    ax.set_ylabel('Wartość f(x)')
     ax.grid(True)
     plt.legend()
     plt.show()
@@ -62,29 +59,55 @@ def ackley_function_2d(x, y):
 def visualization_ackley_function_3d(r_min, r_max):
     xaxis = np.arange(r_min, r_max, 1)
     yaxis = np.arange(r_min, r_max, 1)
-
     X, Y = np.meshgrid(xaxis, yaxis)
-
     Z = np.zeros_like(X)
-
     for i in range(X.shape[0]):
         for j in range(X.shape[1]):
             Z[i, j] = ackley_function_2d(X[i, j], Y[i, j])
 
     fig = plt.figure(figsize=(12, 7))
     ax = fig.add_subplot(111, projection='3d')
-
     surface = ax.plot_surface(X, Y, Z, cmap='viridis', alpha=0.7, linewidth=0, antialiased=False)
-
     fig.colorbar(surface, shrink=0.5, aspect=5, label='Wartość funkcji')
-
-    ax.set_title('Wykres 4. Funkcji Ackleya 3D')
-    ax.set_xlabel('X')
-    ax.set_ylabel('Y')
-    ax.set_zlabel('Wartość Funkcji f(x, y)')
+    ax.set_title('Wykres 4. Funkcja Ackleya 3D')
     ax.view_init(elev=35, azim=-120)
     plt.show()
 
 
+def visualization_convergence_ackley_function_2d(history):
+    plt.figure(figsize=(12, 7))
+    for step, hist in history.items():
+        plt.plot(hist, label=f'Krok = {step}')
 
+    plt.title('Wykres 5. Zbieżność Gradient Descent dla funkcji Ackleya 2d')
+    plt.xlabel('Iteracja')
+    plt.ylabel('Wartość f(x, y)')
+    plt.legend()
+    plt.grid(True, linestyle='--', alpha=0.7)
+    plt.show()
+
+
+def visualize_best_step_3d(final_pos, history_f, path_x, path_y, optimal_step, r_vis=5):
+    xaxis = np.arange(-r_vis, r_vis, 0.1)
+    yaxis = np.arange(-r_vis, r_vis, 0.1)
+    X, Y = np.meshgrid(xaxis, yaxis)
+    Z = np.vectorize(ackley_function_2d)(X, Y)
+
+    fig = plt.figure(figsize=(12, 7))
+    ax = fig.add_subplot(111, projection='3d')
+    ax.plot_surface(X, Y, Z, cmap='viridis', alpha=0.6, label='Funkcja f(x,y)')
+
+    ax.plot(path_x, path_y, history_f, color='red', marker='o', markersize=3, linewidth=2, label='Trajektoria')
+
+    ax.scatter(path_x[0], path_y[0], history_f[0], color='green', s=50, label='Start')
+    ax.scatter(final_pos[0], final_pos[1], history_f[-1], color='cyan', s=50, label='Stop')
+
+    ax.set_title(f'Wykres 6. Trajektoria dla optymalnego kroku {optimal_step}')
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Wartość f(x,y)')
+    ax.view_init(elev=35, azim=-120)
+    ax.plot([], [], [], color='red', linewidth=2)
+    plt.legend()
+    plt.show()
 
