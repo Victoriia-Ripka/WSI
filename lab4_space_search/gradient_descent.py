@@ -14,7 +14,7 @@ class GradientDescent(Solver):
         self.stop_iter = None
 
     def get_parameters(self):
-        return f"learning rate: {self.step}, stop iteration nr {self.stop_iter}"
+        return f"learning rate: {self.step}"
 
     def gradient_ackley_1d(self, x, _):
         if np.abs(x) < self.epsilon:
@@ -91,7 +91,9 @@ class GradientDescent(Solver):
     def _get_gradient(self, problem):
         if problem.__name__ == "ackley_function_2d":
             gradient_func = self.gradient_ackley_2d
+            return gradient_func
         elif problem.__name__ == "ackley_function":
             gradient_func = self.gradient_ackley_1d
+            return gradient_func
 
-        return gradient_func
+        return None

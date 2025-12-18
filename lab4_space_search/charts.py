@@ -9,7 +9,7 @@ def ackley_function(x, y):
 
 
 def visualization_ackley_function(r_min, r_max):
-    inputs = np.arange(r_min, r_max, 1)
+    inputs = np.arange(r_min, r_max, 0.01)
     outputs = np.array([ackley_function(x, 0) for x in inputs])
 
     plt.figure(figsize=(12, 7))
@@ -57,8 +57,8 @@ def ackley_function_2d(x, y):
 
 
 def visualization_ackley_function_3d(r_min, r_max):
-    xaxis = np.arange(r_min, r_max, 1)
-    yaxis = np.arange(r_min, r_max, 1)
+    xaxis = np.arange(r_min, r_max, 0.01)
+    yaxis = np.arange(r_min, r_max, 0.01)
     X, Y = np.meshgrid(xaxis, yaxis)
     Z = np.zeros_like(X)
     for i in range(X.shape[0]):
