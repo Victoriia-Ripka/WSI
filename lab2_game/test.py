@@ -1,5 +1,5 @@
 import unittest
-from lab2.game.dots_and_boxes import DotsAndBoxes, DotsAndBoxesMove
+from lab2_game.game.dots_and_boxes import DotsAndBoxes, DotsAndBoxesMove
 
 
 class TestDotsAndBoxes(unittest.TestCase):

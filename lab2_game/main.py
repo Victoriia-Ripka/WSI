@@ -1,5 +1,5 @@
-from lab2.game import Player
-from lab2.game.dots_and_boxes import DotsAndBoxes
+from lab2_game.game import Player
+from lab2_game.game.dots_and_boxes import DotsAndBoxes
 import random
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
