@@ -1,9 +1,9 @@
 from typing import Dict, Iterable, List, Optional, Tuple
 import random
-from lab2.game.game import Game
-from lab2.game.move import Move
-from lab2.game.player import Player
-from lab2.game.state import State
+from lab2_game.game.game import Game
+from lab2_game.game.move import Move
+from lab2_game.game.player import Player
+from lab2_game.game.state import State
 
 
 class DotsAndBoxes(Game):
