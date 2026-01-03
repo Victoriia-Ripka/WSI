@@ -68,16 +68,38 @@ class NeuralNetwork(Solver):
         return weights + delta * self.l_rate * data
 
     def get_parameters(self):
-        return [self.layer_count, self.neuron_layers]
+        return [self.n_epoch, self.l_rate, self.layers_amount]
+
+    def visualization(self):
+        lines = []
+
+        for i, layer in enumerate(self.layers_conf):
+            neurons = layer['neurons']
+            activation = layer['activation']
+
+            if i == 0:
+                box = f"[ Warstwa wejściowa ({neurons}) ]"
+            elif i == self.layers_amount - 1:
+                box = f"[ Warstwa wyjściowa ({neurons}) | {activation} ]"
+            else:
+                box = f"[ Warstwa ukryta ({neurons}) | {activation} ]"
+
+            lines.append(box)
+
+            if i < len(self.layers_conf) - 1:
+                lines.append("      |")
+                lines.append("      ▼")
+
+        return "\n".join(lines)
 
     def fit(self, X, y, error_threshold=0.0001):
         for epoch in range(self.n_epoch):
             errors = []
-            # output = self.forward_propagate(self.dataset_inputs)
-            # self.layer_outputs = self.layer_inputs.copy()
-            # self.layer_outputs.append(output)
-            # self.backward_propagate_error(self.l_rate)
-            #
+            output = self.forward_propagate(self.dataset_inputs)
+            self.layer_outputs = self.layer_inputs.copy()
+            self.layer_outputs.append(output)
+            self.backward_propagate_error(self.l_rate)
+
             # if epoch % 2000 == 0:
             #     error = -np.mean(np.log(output[np.arange(len(self.dataset_outputs)), np.argmax(self.dataset_outputs)]))
             #     print('[INFO] epoch=%d, error=%.4f' % (epoch, error))
@@ -85,6 +107,23 @@ class NeuralNetwork(Solver):
             #     if error < error_threshold:
             #         print('[INFO] Training stopped. Error is below the threshold.')
             #         break
+
+    def forward_propagate(self, data):
+        layer_input = data
+        self.layer_inputs = [layer_input]
+
+        n_hidden_layers = len(self.weights) - 1
+        for i in range(n_hidden_layers):
+            # вираховується зважена сума до прошарків
+            layer_output = np.dot(layer_input, self.weights[i]) + self.biases[i]
+            layer_input = self.activation_function(layer_output)
+            self.layer_inputs.append(layer_input)
+
+        # вихід з останнього прихованого шару з функцією активації softmax
+        output = np.dot(layer_input, self.weights[-1]) + self.biases[-1]
+        # output = np.clip(output, -700, 700)
+        output = self.softmax(output)
+        return output
 
     def predict(self, X):
         return np.argmax(self.forward_propagate(X), axis=1)

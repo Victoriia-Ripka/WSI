@@ -38,6 +38,7 @@ def main():
     ]
 
     nn = NeuralNetwork(nn_params, n_epoch, l_rate)
+    print(nn.visualization())
     # nn.fit(X_train_small, Y_train_small)
 
 
