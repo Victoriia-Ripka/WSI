@@ -1,5 +1,5 @@
 """
-Autor: Viktoriia Nowotka
+Autor: Viktoriia Nowotka, Karol Łukasik
 
 Dla chętnych:
 Zaproponuj sposób poprawy jakości klasyfikacji dla najmniej licznych klas w zbiorze danych.
@@ -7,8 +7,9 @@ Porównaj ogólną jakość klasyfikacji oraz jakość klasyfikacji najmniej lic
 przygotowaną w ramach ćwiczenia.
 """
 import numpy as np
-from lab5_nn.data_reader import DataReader
-from lab5_nn.nn import NeuralNetwork
+from data_reader import DataReader
+from nn import NeuralNetwork
+from activation_functions import relu, sigmoid, tanh, softmax
 
 
 def main():
@@ -21,25 +22,25 @@ def main():
     # print(X_train.shape, Y_train.shape)
 
     # dla testów na początek
-    X_train_small = X_train[0:5, 0:3]
-    Y_train_small = Y_train[0:5]
+    X_train_small = X_train[0:100, :]
+    Y_train_small = Y_train[0:100]
     # print(X_train_small, Y_train_small)
 
-    n_epoch = 100
+    n_epoch = 1001
     l_rate = 0.01
 
     nn_params = [
         {'neurons': X_train_small.shape[1],
-         'activation': 'sigmoid'},
-        {'neurons': 3,
-         'activation': 'sigmoid'},
-        {'neurons': len(np.unique(Y_train_small)),
-         'activation': 'relu'},
+         'activation': relu},
+        {'neurons': 12,
+         'activation': relu},
+        {'neurons': 6,
+         'activation': softmax},
     ]
 
     nn = NeuralNetwork(nn_params, n_epoch, l_rate)
     print(nn.visualization())
-    # nn.fit(X_train_small, Y_train_small)
+    nn.fit(X_train_small, Y_train_small)
 
 
 

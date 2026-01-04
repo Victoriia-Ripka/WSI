@@ -8,9 +8,11 @@ def relu(x, derive=False):
 
 def sigmoid(x, derive=False):
     clipped_x = np.clip(x, -500, 500)
+    a = 1 / (1 + np.exp(-clipped_x))
     if not derive:
-        return 1 / (1 + np.exp(-clipped_x))
-    return x * (1 - x)
+        return a
+    #return x * (1 - x) #tutaj byl chyba blad
+    return a * (1 - a)
 
 
 def tanh(x, derive=False):

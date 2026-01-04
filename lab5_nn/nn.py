@@ -1,13 +1,13 @@
 """
-Autor: Viktoria Nowotka
+Autor: Viktoria Nowotka, Karol Łukasik
 
 parametryzowalna liczba warstw i neuronów w każdej warstwie, możliwość wyboru
 różnych funkcji straty, aktywacji oraz algorytmu optymalizacyjnego.
 """
 
 import numpy as np
-from lab5_nn.activation_functions import sigmoid, relu, tanh, softmax
-from lab5_nn.solver import Solver
+from activation_functions import sigmoid, relu, tanh, softmax
+from solver import Solver
 
 # TODO normalizacja wag oraz wejścia
 class NeuralNetwork(Solver):
@@ -64,8 +64,13 @@ class NeuralNetwork(Solver):
 
         return biases
 
-    def __update_weights(self, data, weights, delta):
-        return weights + delta * self.l_rate * data
+    # def __update_weights(self, data, weights, delta):
+    #     return weights + delta * self.l_rate * data
+    
+    def __update_weights(self, grads_w, grads_b):
+        for i in range(len(self.weights)):
+            self.weights[i] -= self.l_rate * grads_w[i]
+            self.biases[i] -= self.l_rate * grads_b[i]
 
     def get_parameters(self):
         return [self.n_epoch, self.l_rate, self.layers_amount]
@@ -92,38 +97,51 @@ class NeuralNetwork(Solver):
 
         return "\n".join(lines)
 
-    def fit(self, X, y, error_threshold=0.0001):
+    def fit(self, X, y):
         for epoch in range(self.n_epoch):
-            errors = []
-            output = self.forward_propagate(self.dataset_inputs)
-            self.layer_outputs = self.layer_inputs.copy()
-            self.layer_outputs.append(output)
-            self.backward_propagate_error(self.l_rate)
+            y_pred = self.forward_propagate(X)
+            grads_w, grads_b = self.backward_propagate(y)
+            self.__update_weights(grads_w, grads_b)
+            if epoch % 500 == 0:
+                loss = -np.mean(np.sum(y * np.log(y_pred + 1e-9), axis=1))
+                print(f'Epoch {epoch}, Loss: {loss:.4f}')
 
-            # if epoch % 2000 == 0:
-            #     error = -np.mean(np.log(output[np.arange(len(self.dataset_outputs)), np.argmax(self.dataset_outputs)]))
-            #     print('[INFO] epoch=%d, error=%.4f' % (epoch, error))
-            #
-            #     if error < error_threshold:
-            #         print('[INFO] Training stopped. Error is below the threshold.')
-            #         break
+    def forward_propagate(self, X):
+        self.layer_inputs = [] #"Z values"
+        self.layer_activations = [X] #"A values"
+        current_input = X
 
-    def forward_propagate(self, data):
-        layer_input = data
-        self.layer_inputs = [layer_input]
-
-        n_hidden_layers = len(self.weights) - 1
-        for i in range(n_hidden_layers):
-            # вираховується зважена сума до прошарків
-            layer_output = np.dot(layer_input, self.weights[i]) + self.biases[i]
-            layer_input = self.activation_function(layer_output)
-            self.layer_inputs.append(layer_input)
-
-        # вихід з останнього прихованого шару з функцією активації softmax
-        output = np.dot(layer_input, self.weights[-1]) + self.biases[-1]
-        # output = np.clip(output, -700, 700)
-        output = self.softmax(output)
-        return output
+        for i in range(len(self.weights)):
+            Z = np.dot(current_input, self.weights[i]) + self.biases[i]
+            self.layer_inputs.append(Z)
+            act_func = self.layers_conf[i+1]['activation']
+            if act_func.__name__ == 'softmax': #albo dodać parametr derive do softmax
+                A = act_func(Z)
+            else:
+                A = act_func(Z, derive=False)
+            self.layer_activations.append(A)
+            current_input = A
+        return current_input
+    
+    def backward_propagate(self, y_true):
+        m = y_true.shape[0]
+        gradients_w = []
+        gradients_b = []
+        A_last = self.layer_activations[-1]
+        delta = A_last - y_true #dC/dZ = dC/dA * dA/dZ (softmax + cross-entropy), jak zmienimy funkcje straty to trzeba bedzie to zmienic
+        for i in range(len(self.weights) - 1, -1, -1):
+            A_prev = self.layer_activations[i]
+            dW = np.dot(A_prev.T, delta) / m #dz/dW
+            db = np.sum(delta, axis=0, keepdims=True) / m
+            gradients_w.insert(0, dW)
+            gradients_b.insert(0, db)
+            if i > 0:
+                W_curr = self.weights[i]
+                Z_prev = self.layer_inputs[i-1]
+                prev_act_func = self.layers_conf[i]['activation']
+                derivative = prev_act_func(Z_prev, derive=True)
+                delta = np.dot(delta, W_curr.T) * derivative
+        return gradients_w, gradients_b
 
     def predict(self, X):
         return np.argmax(self.forward_propagate(X), axis=1)
