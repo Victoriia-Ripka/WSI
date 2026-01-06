@@ -169,5 +169,18 @@ class NeuralNetwork(Solver):
                 delta = np.dot(delta, W_curr.T) * derivative
         return gradients_w, gradients_b
 
+    def recall_per_class(self, y, y_pred_labels, n_classes, eps=1e-9):
+        y_true_labels = np.argmax(y, axis=1)
+
+        recalls = {}
+
+        for c in range(n_classes):
+            TP = np.sum((y_true_labels == c) & (y_pred_labels == c))
+            FN = np.sum((y_true_labels == c) & (y_pred_labels != c))
+
+            recalls[c] = TP / (TP + FN + eps)
+
+        return recalls
+
     def predict(self, X):
         return np.argmax(self.forward_propagate(X), axis=1)
