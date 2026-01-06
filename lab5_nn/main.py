@@ -19,7 +19,7 @@ def main():
     X_train, X_val, X_test, Y_train, Y_val, Y_test = fr.read_data()
 
     n_epoch = 100000
-    l_rate = 0.01
+    l_rate = 0.005
 
     inputs = X_train.shape[1]
     outputs = Y_train.shape[1]
@@ -27,19 +27,19 @@ def main():
     nn_params = [
         {'neurons': inputs,
          'activation': relu},
-        {'neurons': inputs,
-         'activation': relu},
+        # {'neurons': inputs,
+        #  'activation': relu},
         {'neurons': outputs,
          'activation': softmax},
     ]
 
     nn = NeuralNetwork(nn_params, n_epoch, l_rate)
-    # print(nn.get_parameters())
-    print(nn.visualization(), '\n\n')
-
     nn.fit(X_train, X_val, Y_train, Y_val)
-
     loss_val = nn.calculate_loss(X_test, Y_test)
+
+    print("NN params: ", nn.get_parameters(), '\n\n')
+    print(nn.visualization(), '\n\n')
+    print(X_train[0])
     print("\n\nLoss on test data: ", loss_val)
 
 

@@ -1,7 +1,5 @@
 """
 Autor: Viktoria Nowotka, Karol Łukasik
-
-możliwość wyboru różnych funkcji straty oraz algorytmu optymalizacyjnego.
 """
 
 import numpy as np
@@ -47,7 +45,7 @@ class NeuralNetwork(Solver):
             n_in = self.layers_conf[i]['neurons']
             n_out = self.layers_conf[i + 1]['neurons']
 
-            w = np.random.normal(0, 1, (n_in, n_out))
+            w = np.random.normal(0, np.sqrt(2 / n_in), (n_in, n_out))
             weights.append(w)
 
         return weights
@@ -55,12 +53,8 @@ class NeuralNetwork(Solver):
     def __initialize_biases(self):
         biases = []
         for i in range(len(self.layers_conf) - 1):
-            # n_in = self.layers_conf[i]['neurons']
             n_out = self.layers_conf[i + 1]['neurons']
-
-            b = np.random.normal(0, 1, (1, n_out))
-            biases.append(b)
-
+            biases.append(np.zeros((1, n_out)))
         return biases
     
     def __update_weights(self, grads_w, grads_b):
@@ -88,7 +82,7 @@ class NeuralNetwork(Solver):
             activation = layer['activation']
 
             if i == 0:
-                box = f"[ Warstwa wejściowa ({neurons}) ]"
+                box = f"[ Warstwa wejściowa ({neurons}) | {activation.__name__} ]"
             elif i == self.layers_amount - 1:
                 box = f"[ Warstwa wyjściowa ({neurons}) | {activation.__name__} ]"
             else:
