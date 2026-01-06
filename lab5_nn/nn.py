@@ -1,17 +1,17 @@
 """
 Autor: Viktoria Nowotka, Karol Łukasik
 
-parametryzowalna liczba warstw i neuronów w każdej warstwie, możliwość wyboru
-różnych funkcji straty, aktywacji oraz algorytmu optymalizacyjnego.
+możliwość wyboru różnych funkcji straty oraz algorytmu optymalizacyjnego.
 """
 
 import numpy as np
-from activation_functions import sigmoid, relu, tanh, softmax
+from sklearn.preprocessing import OneHotEncoder
 from solver import Solver
 
-# TODO normalizacja wag oraz wejścia
 class NeuralNetwork(Solver):
     def __init__(self, params, n_epoch, l_rate):
+        self.encoder = OneHotEncoder(sparse_output=False)
+
         self.n_epoch = n_epoch
         self.l_rate = l_rate
 
@@ -52,7 +52,6 @@ class NeuralNetwork(Solver):
 
         return weights
 
-    # TODO jaki format? (n, 1) czy (1, n)
     def __initialize_biases(self):
         biases = []
         for i in range(len(self.layers_conf) - 1):
@@ -63,9 +62,6 @@ class NeuralNetwork(Solver):
             biases.append(b)
 
         return biases
-
-    # def __update_weights(self, data, weights, delta):
-    #     return weights + delta * self.l_rate * data
     
     def __update_weights(self, grads_w, grads_b):
         for i in range(len(self.weights)):
@@ -73,7 +69,16 @@ class NeuralNetwork(Solver):
             self.biases[i] -= self.l_rate * grads_b[i]
 
     def get_parameters(self):
-        return [self.n_epoch, self.l_rate, self.layers_amount]
+        struct = self.get_structure()
+        return {"n_epoch": self.n_epoch, "l_rate": self.l_rate, "struct": struct}
+
+    def get_structure(self):
+        struct = {}
+
+        for i, layer in enumerate(self.layers_conf):
+            struct[i] = layer['neurons']
+
+        return struct
 
     def visualization(self):
         lines = []
@@ -85,9 +90,9 @@ class NeuralNetwork(Solver):
             if i == 0:
                 box = f"[ Warstwa wejściowa ({neurons}) ]"
             elif i == self.layers_amount - 1:
-                box = f"[ Warstwa wyjściowa ({neurons}) | {activation} ]"
+                box = f"[ Warstwa wyjściowa ({neurons}) | {activation.__name__} ]"
             else:
-                box = f"[ Warstwa ukryta ({neurons}) | {activation} ]"
+                box = f"[ Warstwa ukryta ({neurons}) | {activation.__name__} ]"
 
             lines.append(box)
 
@@ -97,14 +102,35 @@ class NeuralNetwork(Solver):
 
         return "\n".join(lines)
 
-    def fit(self, X, y):
+    def fit(self, X, X_val, y, y_val, best_loss=np.inf, patience=5):
         for epoch in range(self.n_epoch):
+            # TRAIN
             y_pred = self.forward_propagate(X)
             grads_w, grads_b = self.backward_propagate(y)
             self.__update_weights(grads_w, grads_b)
-            if epoch % 500 == 0:
+
+            # VALIDATION
+            loss_val = self.calculate_loss(X_val, y_val)
+
+            # EARLY STOPPING
+            if loss_val < best_loss:
+                best_loss = loss_val
+                patience_counter = 0
+            else:
+                patience_counter += 1
+                if patience_counter >= patience:
+                    print(f"Wczesne zatrzymanie uczenia (epoch {epoch}). \nloss={loss_val:.3f}, delta loss={loss_val-best_loss:.6f}")
+                    break
+
+            # LOG
+            if epoch % 1000 == 0:
                 loss = -np.mean(np.sum(y * np.log(y_pred + 1e-9), axis=1))
                 print(f'Epoch {epoch}, Loss: {loss:.4f}')
+
+    def calculate_loss(self, X_val, y_val):
+        y_pred = self.forward_propagate(X_val)
+        loss = -np.mean(np.sum(y_val * np.log(y_pred + 1e-9), axis=1))
+        return loss
 
     def forward_propagate(self, X):
         self.layer_inputs = [] #"Z values"
