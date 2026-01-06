@@ -113,6 +113,7 @@ class NeuralNetwork(Solver):
             else:
                 patience_counter += 1
                 if patience_counter >= patience:
+                    self.n_epoch = epoch + 1
                     print(f"Wczesne zatrzymanie uczenia (epoch {epoch}). \nloss={loss_val:.3f}, delta loss={loss_val-best_loss:.6f}")
                     break
 
@@ -125,6 +126,11 @@ class NeuralNetwork(Solver):
         y_pred = self.forward_propagate(X_val)
         loss = -np.mean(np.sum(y_val * np.log(y_pred + 1e-9), axis=1))
         return loss
+
+    def calculate_accuracy(self, X, y):
+        y_pred = self.predict(X)
+        y_labels = np.argmax(y, axis=1)
+        return np.mean(y_pred == y_labels)
 
     def forward_propagate(self, X):
         self.layer_inputs = [] #"Z values"
