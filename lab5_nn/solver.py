@@ -10,7 +10,7 @@ class Solver(ABC):
         ...
 
     @abstractmethod
-    def fit(self, X, y):
+    def fit(self, X, X_val, y, y_val):
         """
         A method that fits the solver to the given data.
         X is the dataset without the class attribute.

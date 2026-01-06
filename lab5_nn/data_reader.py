@@ -11,13 +11,13 @@ class DataReader:
         self.file_path = 'data/' + file_name
         self.target = target
 
+        self.encoder = OneHotEncoder(sparse_output=False)
+
     def read_data(self):
         df = pd.read_csv(self.file_path)
 
-        y = df[self.target].values
-        encoder = OneHotEncoder(sparse_output=False)
-        y_raw = df['quality'].values.reshape(-1, 1)
-        y_encoded = encoder.fit_transform(y_raw)
+        y_raw = df[self.target].values.reshape(-1, 1)
+        y_encoded = self.encoder.fit_transform(y_raw)
 
         x = df.drop(columns=[self.target]).values
 
