@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def relu(x, derive=False):
     if not derive:
         return np.maximum(0, x)
@@ -11,7 +12,7 @@ def sigmoid(x, derive=False):
     a = 1 / (1 + np.exp(-clipped_x))
     if not derive:
         return a
-    #return x * (1 - x) #tutaj byl chyba blad
+    # return x * (1 - x) #tutaj byl chyba blad
     return a * (1 - a)
 
 

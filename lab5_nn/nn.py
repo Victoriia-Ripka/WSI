@@ -1,10 +1,10 @@
 """
 Autor: Viktoria Nowotka, Karol Łukasik
 """
-
 import numpy as np
 from sklearn.preprocessing import OneHotEncoder
 from solver import Solver
+
 
 class NeuralNetwork(Solver):
     def __init__(self, params, n_epoch, l_rate):
@@ -42,8 +42,8 @@ class NeuralNetwork(Solver):
         weights = []
 
         for i in range(len(self.layers_conf) - 1):
-            n_in = self.layers_conf[i]['neurons']
-            n_out = self.layers_conf[i + 1]['neurons']
+            n_in = self.layers_conf[i]["neurons"]
+            n_out = self.layers_conf[i + 1]["neurons"]
 
             w = np.random.normal(0, np.sqrt(2 / n_in), (n_in, n_out))
             weights.append(w)
@@ -53,10 +53,10 @@ class NeuralNetwork(Solver):
     def __initialize_biases(self):
         biases = []
         for i in range(len(self.layers_conf) - 1):
-            n_out = self.layers_conf[i + 1]['neurons']
+            n_out = self.layers_conf[i + 1]["neurons"]
             biases.append(np.zeros((1, n_out)))
         return biases
-    
+
     def __update_weights(self, grads_w, grads_b):
         for i in range(len(self.weights)):
             self.weights[i] -= self.l_rate * grads_w[i]
@@ -70,7 +70,7 @@ class NeuralNetwork(Solver):
         struct = {}
 
         for i, layer in enumerate(self.layers_conf):
-            struct[i] = layer['neurons']
+            struct[i] = layer["neurons"]
 
         return struct
 
@@ -78,8 +78,8 @@ class NeuralNetwork(Solver):
         lines = []
 
         for i, layer in enumerate(self.layers_conf):
-            neurons = layer['neurons']
-            activation = layer['activation']
+            neurons = layer["neurons"]
+            activation = layer["activation"]
 
             if i == 0:
                 box = f"[ Warstwa wejściowa ({neurons}) | {activation.__name__} ]"
@@ -114,13 +114,15 @@ class NeuralNetwork(Solver):
                 patience_counter += 1
                 if patience_counter >= patience:
                     self.n_epoch = epoch + 1
-                    print(f"Wczesne zatrzymanie uczenia (epoch {epoch}). \nloss={loss_val:.3f}, delta loss={loss_val-best_loss:.6f}")
+                    print(
+                        f"Wczesne zatrzymanie uczenia (epoch {epoch}). \nloss={loss_val:.3f}, delta loss={loss_val-best_loss:.6f}"
+                    )
                     break
 
             # LOG
             if epoch % 1000 == 0:
                 loss = -np.mean(np.sum(y * np.log(y_pred + 1e-9), axis=1))
-                print(f'Epoch {epoch}, Loss: {loss:.4f}')
+                print(f"Epoch {epoch}, Loss: {loss:.4f}")
 
     def calculate_loss(self, X_val, y_val):
         y_pred = self.forward_propagate(X_val)
@@ -133,38 +135,40 @@ class NeuralNetwork(Solver):
         return np.mean(y_pred == y_labels)
 
     def forward_propagate(self, X):
-        self.layer_inputs = [] #"Z values"
-        self.layer_activations = [X] #"A values"
+        self.layer_inputs = []  # "Z values"
+        self.layer_activations = [X]  # "A values"
         current_input = X
 
         for i in range(len(self.weights)):
             Z = np.dot(current_input, self.weights[i]) + self.biases[i]
             self.layer_inputs.append(Z)
-            act_func = self.layers_conf[i+1]['activation']
-            if act_func.__name__ == 'softmax': #albo dodać parametr derive do softmax
+            act_func = self.layers_conf[i + 1]["activation"]
+            if act_func.__name__ == "softmax":  # albo dodać parametr derive do softmax
                 A = act_func(Z)
             else:
                 A = act_func(Z, derive=False)
             self.layer_activations.append(A)
             current_input = A
         return current_input
-    
+
     def backward_propagate(self, y_true):
         m = y_true.shape[0]
         gradients_w = []
         gradients_b = []
         A_last = self.layer_activations[-1]
-        delta = A_last - y_true #dC/dZ = dC/dA * dA/dZ (softmax + cross-entropy), jak zmienimy funkcje straty to trzeba bedzie to zmienic
+        delta = (
+            A_last - y_true
+        )  # dC/dZ = dC/dA * dA/dZ (softmax + cross-entropy), jak zmienimy funkcje straty to trzeba bedzie to zmienic
         for i in range(len(self.weights) - 1, -1, -1):
             A_prev = self.layer_activations[i]
-            dW = np.dot(A_prev.T, delta) / m #dz/dW
+            dW = np.dot(A_prev.T, delta) / m  # dz/dW
             db = np.sum(delta, axis=0, keepdims=True) / m
             gradients_w.insert(0, dW)
             gradients_b.insert(0, db)
             if i > 0:
                 W_curr = self.weights[i]
-                Z_prev = self.layer_inputs[i-1]
-                prev_act_func = self.layers_conf[i]['activation']
+                Z_prev = self.layer_inputs[i - 1]
+                prev_act_func = self.layers_conf[i]["activation"]
                 derivative = prev_act_func(Z_prev, derive=True)
                 delta = np.dot(delta, W_curr.T) * derivative
         return gradients_w, gradients_b
