@@ -46,7 +46,7 @@ def main():
     file = "data.csv"
     target = "quality"
 
-    fr = DataReader(file, target)
+    fr = DataReader(file, target, augmentation=True)
     X_train, X_val, X_test, Y_train, Y_val, Y_test = fr.read_data()
 
     n_epoch = 10000
@@ -158,7 +158,7 @@ def test_main():
     X_train, X_val, X_test, Y_train, Y_val, Y_test = fr.read_data()
 
     n_epoch = 10000
-    l_rate = 0.005
+    l_rate = 0.01
 
     inputs = X_train.shape[1]
     outputs = Y_train.shape[1]
@@ -173,11 +173,11 @@ def test_main():
 
     nn.fit(X_train, X_val, Y_train, Y_val)
     y_pred = nn.predict(X_test)
-    loss_val = nn.calculate_loss(X_test, Y_test)
+    # loss_val = nn.calculate_loss(X_test, Y_test)
     acc_val = nn.calculate_accuracy(X_test, Y_test)
 
     print("NN params: ", nn.get_parameters())
-    print("Loss on test data: ", loss_val)
+    # print("Loss on test data: ", loss_val)
     print("Accuracy on test data: ", acc_val, "\n")
 
     recalls = nn.recall_per_class(Y_test, y_pred, n_classes=outputs)

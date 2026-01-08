@@ -124,16 +124,6 @@ class NeuralNetwork(Solver):
                 loss = -np.mean(np.sum(y * np.log(y_pred + 1e-9), axis=1))
                 print(f"Epoch {epoch}, Loss: {loss:.4f}")
 
-    def calculate_loss(self, X_val, y_val):
-        y_pred = self.forward_propagate(X_val)
-        loss = -np.mean(np.sum(y_val * np.log(y_pred + 1e-9), axis=1))
-        return loss
-
-    def calculate_accuracy(self, X, y):
-        y_pred = self.predict(X)
-        y_labels = np.argmax(y, axis=1)
-        return np.mean(y_pred == y_labels)
-
     def forward_propagate(self, X):
         self.layer_inputs = []  # "Z values"
         self.layer_activations = [X]  # "A values"
@@ -173,6 +163,10 @@ class NeuralNetwork(Solver):
                 delta = np.dot(delta, W_curr.T) * derivative
         return gradients_w, gradients_b
 
+    def predict(self, X):
+        return np.argmax(self.forward_propagate(X), axis=1)
+
+    # STATS
     def recall_per_class(self, y, y_pred_labels, n_classes, eps=1e-9):
         y_true_labels = np.argmax(y, axis=1)
 
@@ -186,5 +180,13 @@ class NeuralNetwork(Solver):
 
         return recalls
 
-    def predict(self, X):
-        return np.argmax(self.forward_propagate(X), axis=1)
+    def calculate_loss(self, X_val, y_val):
+        y_pred = self.forward_propagate(X_val)
+        loss = -np.mean(np.sum(y_val * np.log(y_pred + 1e-9), axis=1))
+        return loss
+
+    def calculate_accuracy(self, X, y):
+        y_pred = self.predict(X)
+        y_labels = np.argmax(y, axis=1)
+        return np.mean(y_pred == y_labels)
+
