@@ -9,11 +9,14 @@ from activation_functions import relu, softmax, tanh
 import matplotlib.pyplot as plt
 
 
-def plot_nn_results(values_list, best_value, name, nn_params):
+def plot_nn_results(values_list, best_value, name, nn_params, stds):
     x = range(len(values_list))
 
     plt.figure(figsize=(12, 7))
-    plt.plot(x, values_list, marker="o", linestyle="-", label=name)
+    #plt.plot(x, values_list, marker="o", linestyle="-", label=name)
+    
+    plt.errorbar(x, values_list, yerr=stds, fmt='o-', capsize=5, 
+                 label=f"{name} (mean ± std)", color='tab:blue', ecolor='gray')
 
     best_index = values_list.index(best_value)
     plt.scatter(best_index, best_value, s=120)
@@ -56,6 +59,7 @@ def main():
     outputs = Y_train.shape[1]
 
     nn_accuracies = []
+    nn_accuracies_stds = []
     nn_params_list = [
         [
             {"neurons": inputs, "activation": relu},
@@ -92,7 +96,7 @@ def main():
     print("START searching best nn_params")
     for nn_params in nn_params_list:
         acc_sum = 0
-
+        current_params_scores = []
         for i in range(seeds_count):
             np.random.seed(seed + i)
 
@@ -100,37 +104,41 @@ def main():
             nn.fit(X_train, X_val, Y_train, Y_val)
             acc = nn.calculate_accuracy(X_test, Y_test)
             acc_sum += acc
-
+            current_params_scores.append(acc)
             print("NN params: ", nn.get_parameters())
             print(f"Accuracy on test data: {acc:.2f}")
 
         nn_accuracies.append(acc_sum / seeds_count)
+        std_acc = np.std(current_params_scores)
+        nn_accuracies_stds.append(std_acc)
 
     best_index = np.argmax(nn_accuracies)
     best_accuracy = nn_accuracies[best_index]
     best_params = nn_params_list[best_index]
     print(f"BEST NN params: {best_params}")
-    plot_nn_results(nn_accuracies, best_accuracy, "Structure", nn_params_list)
+    plot_nn_results(nn_accuracies, best_accuracy, "Structure", nn_params_list, nn_accuracies_stds)
 
     nn_accuracies = []
+    nn_accuracies_std = []
     l_rates = [0.001, 0.005, 0.01, 0.015, 0.02, 0.05, 0.1]
 
     print("\n\nSTART searching best l_rate")
     for l_rate in l_rates:
         acc_sum = 0
-
+        current_lrate_scores = []
         for i in range(seeds_count):
             np.random.seed(seed + i)
-
             nn = NeuralNetwork(best_params, n_epoch, l_rate)
             nn.fit(X_train, X_val, Y_train, Y_val)
             acc = nn.calculate_accuracy(X_test, Y_test)
             acc_sum += acc
-
+            current_lrate_scores.append(acc)
             print("NN params: ", nn.get_parameters())
             print(f"Accuracy on test data: {acc:.2f}")
 
         nn_accuracies.append(acc_sum / seeds_count)
+        std_acc = np.std(current_lrate_scores)
+        nn_accuracies_std.append()
 
     best_index = np.argmax(nn_accuracies)
     best_accuracy = nn_accuracies[best_index]
