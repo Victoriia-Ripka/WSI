@@ -8,17 +8,19 @@ def main():
     U = [0, 1, 2]
     n_dirs = 4
 
-    e_max = 15
-    max_steps = 100
+    e_max = 10000
+    max_steps = 500
 
     # Wykonaj przy tym eksperymenty dla różnych zestawów parametrów, uwzględniając:
     b = 0.25                 # szybkość uczenia β
-    y = 0.95                 # współczynnik dyskontowania γ
-    eps = 0.25               # parametr eksploracji ϵ
+    y = 0.99                 # współczynnik dyskontowania γ
+    eps = 0.50               # parametr eksploracji ϵ
 
     ql = QLearning(U, n_dirs, e_max, max_steps)
     ql.train(b, y, eps)
     n_steps = ql.run()
+    print(f"\n\nRun finished after {n_steps} steps")
+    print(f"Q-learning alg params: {ql.get_parameters()}" )
     ql.close()
 
 # współczynnik dyskontowania γ = 1 - 1/H, gdzie H = horyzont kroków.
