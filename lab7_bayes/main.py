@@ -11,11 +11,11 @@ def do_charts():
     pass
 
 
-def work_with_data(filename, target):
-    df = pd.read_csv(filename)
+def work_with_data(filename, text, target):
+    df = pd.read_csv(filename, encoding='Windows-1252', engine='python')
 
     y = df[target].values
-    X = df.drop(target, axis=1)
+    X = df[text].values
 
     return X, y
 
@@ -25,13 +25,15 @@ def k_cross_validation(X, y, n_folds=4):
     scores = []
 
     for train_idx, test_idx in skf.split(X, y):
-        X_train, X_test = X.iloc[train_idx], X.iloc[test_idx]
+        X_train, X_test = X[train_idx], X[test_idx]
         y_train, y_test = y[train_idx], y[test_idx]
 
-        model = Bayes()
-        model.fit(X_train, y_train)
+        classes = np.unique(y_train)
 
-        y_pred = model.predict(X_test)
+        text_classifier = Bayes(classes)
+        text_classifier.fit(X_train, y_train)
+
+        y_pred = text_classifier.predict(X_test)
         acc = accuracy_score(y_test, y_pred)
         scores.append(acc)
 
@@ -40,9 +42,10 @@ def k_cross_validation(X, y, n_folds=4):
 
 def main():
     filename = 'data/spam.csv'
-    target = 'C1' # v1
+    target = 'v1'
+    text = 'v2'
 
-    X, y = work_with_data(filename, target)
+    X, y = work_with_data(filename, text, target)
 
     mean_acc, all_acc = k_cross_validation(X, y, n_folds=4)
 
