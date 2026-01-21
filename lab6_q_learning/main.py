@@ -39,14 +39,16 @@ def main_test():
 
 
 def main():
+    n_iters_for_averaging_result = 3
+
     U = [0, 1, 2]
     n_dirs = 4
 
-    e_max = 3
-    max_steps = 50
+    e_max = 10
+    max_steps = 100
 
     # eksperyment szybkości uczenia β
-    b_array = [0.1, 0.3, 0.6, 0.9]
+    b_array = [0.1, 0.5, 0.9]
     y = 0.99
     eps = 0.5
 
@@ -55,7 +57,7 @@ def main():
     for b in b_array:
         steps = []
 
-        for _ in range(10):
+        for _ in range(n_iters_for_averaging_result):
             ql = QLearning(U, n_dirs, e_max, max_steps)
             ql.train(b, y, eps)
             steps.append(ql.run())
@@ -82,66 +84,66 @@ def main():
     # Przy H = 20 => γ = 0.95
     # Przy H = 40 => γ = 0.975
     # Przy H = 100 => γ = 0.99
-    b = 0.7
-    eps = 0.5
-    y_array = [0.9, 0.95, 0.975, 0.99]
-
-    n_steps_avg = []
-
-    for y in y_array:
-        steps = []
-
-        for _ in range(10):
-            ql = QLearning(U, n_dirs, e_max, max_steps)
-            ql.train(b, y, eps)
-            steps.append(ql.run())
-            ql.close()
-
-        n_steps_avg.append(sum(steps) / len(steps))
-
-    plot_n_steps(
-        nazwa_eksperymentu="Wpływ współczynnika dyskontowania γ na zbieżność Q-learning",
-        parametry_uczenia={
-            "b": b,
-            "eps": eps,
-            "e_max": e_max,
-            "max_steps": max_steps
-        },
-        param_array=y_array,
-        n_steps_array=n_steps_avg,
-        param_name="γ"
-    )
+    # b = 0.7
+    # eps = 0.5
+    # y_array = [0.9, 0.95, 0.975, 0.99]
+    #
+    # n_steps_avg = []
+    #
+    # for y in y_array:
+    #     steps = []
+    #
+    #     for _ in range(n_iters_for_averaging_result):
+    #         ql = QLearning(U, n_dirs, e_max, max_steps)
+    #         ql.train(b, y, eps)
+    #         steps.append(ql.run())
+    #         ql.close()
+    #
+    #     n_steps_avg.append(sum(steps) / len(steps))
+    #
+    # plot_n_steps(
+    #     nazwa_eksperymentu="Wpływ współczynnika dyskontowania γ na zbieżność Q-learning",
+    #     parametry_uczenia={
+    #         "b": b,
+    #         "eps": eps,
+    #         "e_max": e_max,
+    #         "max_steps": max_steps
+    #     },
+    #     param_array=y_array,
+    #     n_steps_array=n_steps_avg,
+    #     param_name="γ"
+    # )
 
     # eksperyment parametr eksploracji ϵ
-    b = 0.7
-    y = 0.975
-    eps_array = [0.1, 0.5, 0.9]
-
-    n_steps_avg = []
-
-    for eps in eps_array:
-        steps = []
-
-        for _ in range(10):
-            ql = QLearning(U, n_dirs, e_max, max_steps)
-            ql.train(b, y, eps)
-            steps.append(ql.run())
-            ql.close()
-
-        n_steps_avg.append(sum(steps) / len(steps))
-
-    plot_n_steps(
-        nazwa_eksperymentu="Wpływ parametru eksploracji ϵ na zbieżność Q-learning",
-        parametry_uczenia={
-            "b": b,
-            "y": y,
-            "e_max": e_max,
-            "max_steps": max_steps
-        },
-        param_array=eps_array,
-        n_steps_array=n_steps_avg,
-        param_name="ϵ"
-    )
+    # b = 0.7
+    # y = 0.975
+    # eps_array = [0.1, 0.5, 0.9]
+    #
+    # n_steps_avg = []
+    #
+    # for eps in eps_array:
+    #     steps = []
+    #
+    #     for _ in range(n_iters_for_averaging_result):
+    #         ql = QLearning(U, n_dirs, e_max, max_steps)
+    #         ql.train(b, y, eps)
+    #         steps.append(ql.run())
+    #         ql.close()
+    #
+    #     n_steps_avg.append(sum(steps) / len(steps))
+    #
+    # plot_n_steps(
+    #     nazwa_eksperymentu="Wpływ parametru eksploracji ϵ na zbieżność Q-learning",
+    #     parametry_uczenia={
+    #         "b": b,
+    #         "y": y,
+    #         "e_max": e_max,
+    #         "max_steps": max_steps
+    #     },
+    #     param_array=eps_array,
+    #     n_steps_array=n_steps_avg,
+    #     param_name="ϵ"
+    # )
 
 
 if __name__ == "__main__":
