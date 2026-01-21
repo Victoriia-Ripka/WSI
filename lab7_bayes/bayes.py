@@ -3,13 +3,16 @@ Author: Viktoriia Nowotka
 
 Celem ćwiczenia jest implementacja algorytmu naiwnego klasyfikatora Bayesa.
 Następnie należy wykorzystać stworzony algorytm do stworzenia i zbadania jakości
-klasyfikatorów dla zbioru danych SMS Spam Collection Dataset
-https://www.kaggle.com/datasets/uciml/sms-spam-collection-dataset.
+klasyfikatorów dla zbioru danych SMS Spam Collection Dataset.
 Klasą jest pole class.
 """
+from lab7_bayes.solver import Solver
 
-class Bayes:
+class Bayes(Solver):
     def __init__(self):
+        pass
+
+    def get_parameters(self):
         pass
 
     def fit(self, X, y):
@@ -18,9 +21,4 @@ class Bayes:
     def predict(self, X):
         pass
 
-    def predict_proba(self, X):
-        pass
-
-    def score(self, X, y):
-        pass
 
