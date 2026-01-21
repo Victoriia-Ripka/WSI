@@ -105,7 +105,8 @@ class QLearning(Solver):
             truncated = False
 
             # każdy epizod ma różny punkt A
-            self.__set_random_agent_pos()
+            # self.__set_random_agent_pos()
+            self.__set_agent_pos(pos=(7,7))
             pos_x, ind_x = self.__define_x()
             self.print_agent_position(pos_x)
 
