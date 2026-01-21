@@ -28,9 +28,7 @@ def k_cross_validation(X, y, n_folds=4):
         X_train, X_test = X[train_idx], X[test_idx]
         y_train, y_test = y[train_idx], y[test_idx]
 
-        classes = np.unique(y_train)
-
-        text_classifier = Bayes(classes)
+        text_classifier = Bayes()
         text_classifier.fit(X_train, y_train)
 
         y_pred = text_classifier.predict(X_test)
