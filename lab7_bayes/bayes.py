@@ -2,10 +2,8 @@
 Author: Viktoriia Nowotka
 
 Celem ćwiczenia jest implementacja algorytmu naiwnego klasyfikatora Bayesa.
-Następnie należy wykorzystać stworzony algorytm do stworzenia i zbadania jakości
-klasyfikatorów dla zbioru danych SMS Spam Collection Dataset.
-Klasą jest pole class.
 """
+import math
 import re
 import numpy as np
 from collections import defaultdict
@@ -21,12 +19,12 @@ class Bayes(Solver):
     def get_parameters(self):
         return {'classes': self.classes}
 
-    def __preprocess_text(self, text):
+    @staticmethod
+    def __preprocess_text(text):
         text = text.lower()
         text = re.sub(r'[^a-z ]', '', text)
         return text.split()
 
-    # TODO
     def fit(self, X, y):
         self.classes = np.unique(y)
         self.word_counts = {c: defaultdict(int) for c in self.classes}
@@ -42,12 +40,24 @@ class Bayes(Solver):
         for c in self.classes:
             self.vocab |= self.word_counts[c].keys()
 
-        print(self.vocab)
-        print(self.word_counts)
-        print(self.class_counts)
-
-    # TODO
     def predict(self, X):
-        pass
+        predictions = []
+        for sentence in X:
+            predictions.append(self.__predict(sentence))
 
+        return predictions
 
+    def __predict(self, text):
+        scores = {}
+
+        for c in self.classes:
+            score = math.log(self.class_counts[c] / sum(self.class_counts.values()))
+            total_words = sum(self.word_counts[c].values()) + len(self.vocab)
+
+            for word in self.__preprocess_text(text):
+                count = self.word_counts[c].get(word, 0)
+                score += math.log((count + 1) / total_words)
+
+            scores[c] = score
+
+        return max(scores, key=scores.get)

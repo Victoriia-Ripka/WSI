@@ -7,9 +7,6 @@ from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import accuracy_score
 from lab7_bayes.bayes import Bayes
 
-def do_charts():
-    pass
-
 
 def work_with_data(filename, text, target):
     df = pd.read_csv(filename, encoding='Windows-1252', engine='python')
